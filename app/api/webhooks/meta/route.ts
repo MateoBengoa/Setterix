@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { incrementAnalytics } from "@/lib/analytics/attribution";
 import { generateAgentReply } from "@/lib/ai/agent";
+import { findMetaAccountByWebhookIds } from "@/lib/meta/find-meta-account-webhook";
 import {
-  isSafeMetaNumericId,
+  messageMidFromPayload,
   parseMetaWebhookPayload,
   webhookAccountId,
   type WebhookEntry,
@@ -27,29 +28,6 @@ export async function GET(req: Request) {
   return NextResponse.json({ error: "forbidden" }, { status: 403 });
 }
 
-async function findMetaAccountByWebhookIds(
-  supabase: ReturnType<typeof createAdminClient>,
-  candidateIds: string[]
-) {
-  for (const pid of candidateIds) {
-    if (!isSafeMetaNumericId(pid)) continue;
-
-    const { data: rows, error } = await supabase
-      .from("meta_accounts")
-      .select("id, organization_id")
-      .eq("is_active", true)
-      .or(`page_id.eq.${pid},meta_user_id.eq.${pid},facebook_page_id.eq.${pid}`)
-      .limit(1);
-
-    if (error) {
-      console.error("[meta-webhook] meta_accounts lookup", error.message);
-      continue;
-    }
-    if (rows?.[0]) return rows[0];
-  }
-  return null;
-}
-
 async function processMessagingEvent(
   supabase: ReturnType<typeof createAdminClient>,
   objectType: string | undefined,
@@ -57,7 +35,10 @@ async function processMessagingEvent(
   evt: WebhookMessagingEvent
 ) {
   const msg = evt.message;
-  if (!msg?.mid || msg.is_echo) return;
+  if (!msg || msg.is_echo) return;
+
+  const mid = messageMidFromPayload(msg);
+  if (!mid) return;
 
   const metaUserId = webhookAccountId(evt.sender?.id);
   const recipientId = webhookAccountId(evt.recipient?.id);
@@ -68,8 +49,6 @@ async function processMessagingEvent(
       : "");
   if (!metaUserId || !text) return;
 
-  const mid = msg.mid;
-
   const { data: dupe } = await supabase
     .from("messages")
     .select("id")
@@ -78,7 +57,9 @@ async function processMessagingEvent(
   if (dupe) return;
 
   const platform =
-    objectType === "instagram" ? "instagram" : "facebook";
+    (objectType ?? "").toLowerCase() === "instagram"
+      ? "instagram"
+      : "facebook";
 
   const entryAccountId = webhookAccountId(entry.id);
   const candidateIds = Array.from(
@@ -180,9 +161,13 @@ async function processMessagingEvent(
     .eq("id", conv.id);
 
   if (isNewConversation) {
-    await incrementAnalytics(supabase, orgId, {
-      conversations_started: 1,
-    });
+    try {
+      await incrementAnalytics(supabase, orgId, {
+        conversations_started: 1,
+      });
+    } catch (e) {
+      console.error("[meta-webhook] incrementAnalytics", String(e));
+    }
   }
 
   if (conv.is_ai_active !== false) {
@@ -199,6 +184,14 @@ async function processMessagingEvent(
 }
 
 export async function POST(req: Request) {
+  let supabase: ReturnType<typeof createAdminClient>;
+  try {
+    supabase = createAdminClient();
+  } catch (e) {
+    console.error("[meta-webhook] createAdminClient failed", String(e));
+    return NextResponse.json({ ok: true });
+  }
+
   let raw: unknown;
   try {
     raw = await req.json();
@@ -206,14 +199,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (process.env.META_WEBHOOK_DEBUG === "1") {
+    try {
+      console.log(
+        "[meta-webhook] debug payload keys",
+        JSON.stringify(raw).slice(0, 4000)
+      );
+    } catch {
+      console.log("[meta-webhook] debug payload (non-serializable)");
+    }
+  }
+
   const envelopes = parseMetaWebhookPayload(raw);
-  const supabase = createAdminClient();
 
   for (const env of envelopes) {
     const objectType = env.object;
     for (const entry of (env.entry ?? []) as WebhookEntry[]) {
-      for (const evt of entry.messaging ?? []) {
-        await processMessagingEvent(supabase, objectType, entry, evt);
+      const events: WebhookMessagingEvent[] = [
+        ...(entry.messaging ?? []),
+        ...(entry.standby ?? []),
+      ];
+      for (const evt of events) {
+        try {
+          await processMessagingEvent(supabase, objectType, entry, evt);
+        } catch (e) {
+          console.error("[meta-webhook] processMessagingEvent", String(e));
+        }
       }
     }
   }

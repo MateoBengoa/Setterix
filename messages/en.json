@@ -99,7 +99,12 @@
       "liveSetupVerifyLine": "Webhook verify token must exactly match META_WEBHOOK_VERIFY_TOKEN in your server env.",
       "liveSetupSubscribeLine": "Subscribe to messaging fields for Instagram. If your webhook shows object \"page\" (Facebook Page), apply the Supabase migration `facebook_page_id` and reconnect once with the Facebook OAuth link so we can match your Page ID.",
       "liveSetupGeminiLine": "Set GEMINI_API_KEY on the server (e.g. Vercel). The webhook calls the AI directly; without this key, messages are stored but not auto-replied.",
-      "liveSetupMissingAppUrl": "Set NEXT_PUBLIC_APP_URL to your public site URL so we can show the exact webhook callback to paste in Meta."
+      "liveSetupMissingAppUrl": "Set NEXT_PUBLIC_APP_URL to your public site URL so we can show the exact webhook callback to paste in Meta.",
+      "webhookDiagTitle": "Inbox not updating?",
+      "webhookDiagButton": "Run webhook / inbox diagnostics",
+      "webhookDiagHint": "If the Inbox stays empty, run this and fix any item shown (especially SUPABASE_SERVICE_ROLE_KEY on Vercel).",
+      "webhookDiagLoading": "Loading…",
+      "webhookDiagError": "Could not load diagnostics."
     }
   },
   "privacy": {

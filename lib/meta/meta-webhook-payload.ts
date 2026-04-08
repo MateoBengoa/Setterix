@@ -8,7 +8,10 @@ export type WebhookEnvelope = {
 
 export type WebhookEntry = {
   id?: string | number;
+  /** Primary DM channel */
   messaging?: WebhookMessagingEvent[];
+  /** Handover / secondary app — same shape as messaging */
+  standby?: WebhookMessagingEvent[];
 };
 
 export type WebhookMessagingEvent = {
@@ -16,6 +19,8 @@ export type WebhookMessagingEvent = {
   recipient?: { id?: string | number };
   message?: {
     mid?: string;
+    /** Some payloads use message_id instead of mid */
+    message_id?: string;
     text?: string;
     is_echo?: boolean;
     attachments?: unknown[];
@@ -37,7 +42,15 @@ export function webhookAccountId(raw: string | number | undefined): string {
   return String(raw);
 }
 
-/** PostgREST .or() filter: only allow numeric Meta ids (no commas/quotes). */
+/** PostgREST filter value: Meta user/page ids are numeric strings (often 15–17 digits, sometimes longer). */
 export function isSafeMetaNumericId(s: string): boolean {
-  return /^\d{3,32}$/.test(s);
+  return /^\d{5,40}$/.test(s);
+}
+
+export function messageMidFromPayload(msg: {
+  mid?: string;
+  message_id?: string;
+}): string | undefined {
+  const m = msg.mid ?? msg.message_id;
+  return typeof m === "string" && m.length > 0 ? m : undefined;
 }

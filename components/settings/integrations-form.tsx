@@ -49,6 +49,18 @@ export function IntegrationsForm({
   const [pageId, setPageId] = useState("");
   const [pageName, setPageName] = useState("");
   const [token, setToken] = useState("");
+  const [webhookDiag, setWebhookDiag] = useState<string | null>(null);
+
+  async function runWebhookDiagnostics() {
+    setWebhookDiag(t("webhookDiagLoading"));
+    try {
+      const res = await fetch("/api/integrations/meta/webhook-status");
+      const json = (await res.json()) as unknown;
+      setWebhookDiag(JSON.stringify(json, null, 2));
+    } catch {
+      setWebhookDiag(t("webhookDiagError"));
+    }
+  }
 
   function startNativeInstagramOAuth() {
     window.location.assign(
@@ -110,6 +122,24 @@ export function IntegrationsForm({
           {oauthFlash.message}
         </div>
       ) : null}
+
+      <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+        <h2 className="font-medium text-foreground">{t("webhookDiagTitle")}</h2>
+        <p className="text-xs text-muted-foreground">{t("webhookDiagHint")}</p>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => void runWebhookDiagnostics()}
+        >
+          {t("webhookDiagButton")}
+        </Button>
+        {webhookDiag ? (
+          <pre className="mt-3 max-h-64 overflow-auto rounded-lg bg-background p-3 text-xs">
+            {webhookDiag}
+          </pre>
+        ) : null}
+      </div>
 
       {webhookCallbackUrl ? (
         <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4 text-sm">

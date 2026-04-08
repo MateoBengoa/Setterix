@@ -99,7 +99,12 @@
       "liveSetupVerifyLine": "El token de verificación del webhook debe coincidir con META_WEBHOOK_VERIFY_TOKEN en el servidor.",
       "liveSetupSubscribeLine": "Suscríbete a la mensajería de Instagram. Si el webhook usa object \"page\" (página de Facebook), aplica la migración Supabase `facebook_page_id` y vuelve a conectar con el enlace OAuth de Facebook para guardar el ID de página.",
       "liveSetupGeminiLine": "Define GEMINI_API_KEY en el servidor (p. ej. Vercel). El webhook invoca la IA directamente; sin la clave, se guardan mensajes pero no hay respuesta automática.",
-      "liveSetupMissingAppUrl": "Configura NEXT_PUBLIC_APP_URL con la URL pública del sitio para mostrar la URL exacta del webhook a pegar en Meta."
+      "liveSetupMissingAppUrl": "Configura NEXT_PUBLIC_APP_URL con la URL pública del sitio para mostrar la URL exacta del webhook a pegar en Meta.",
+      "webhookDiagTitle": "¿La bandeja no se actualiza?",
+      "webhookDiagButton": "Diagnóstico de webhook / bandeja",
+      "webhookDiagHint": "Si la bandeja sigue vacía, ejecuta esto y corrige lo que marque (sobre todo SUPABASE_SERVICE_ROLE_KEY en Vercel).",
+      "webhookDiagLoading": "Cargando…",
+      "webhookDiagError": "No se pudo cargar el diagnóstico."
     }
   },
   "privacy": {
