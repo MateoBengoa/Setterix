@@ -58,6 +58,45 @@ export async function fetchMetaUserProfile(
  * Instagram DMs: Instagram Login uses graph.instagram.com + Bearer token;
  * Facebook Login uses a Page access token on graph.facebook.com/me/messages.
  */
+/**
+ * Shows the "typing..." bubble in the user's chat.
+ * Fire-and-forget — failures are non-fatal.
+ */
+export async function sendTypingIndicator(
+  accessToken: string,
+  igAccountId: string | null | undefined,
+  recipientId: string,
+  oauthProvider?: string | null
+): Promise<void> {
+  try {
+    if (oauthProvider === "instagram" && igAccountId) {
+      await fetch(`${IG_GRAPH}/${igAccountId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          recipient: { id: recipientId },
+          sender_action: "typing_on",
+        }),
+      });
+    } else {
+      await fetch(`${FB_GRAPH}/me/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient: { id: recipientId },
+          sender_action: "typing_on",
+          access_token: accessToken,
+        }),
+      });
+    }
+  } catch {
+    // non-fatal
+  }
+}
+
 export async function sendInstagramMessage(
   accessToken: string,
   igAccountId: string | null | undefined,

@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { sendInstagramMessage } from "@/lib/meta/instagram";
+import { sendInstagramMessage, sendTypingIndicator } from "@/lib/meta/instagram";
 import { sendMessengerMessage } from "@/lib/meta/facebook";
 import { incrementAnalytics } from "@/lib/analytics/attribution";
 import { resolveMetaAccountForLead } from "@/lib/meta/resolve-meta-account";
@@ -162,6 +162,22 @@ export async function generateAgentReply(
     system_prompt_override: config.system_prompt_override,
   });
 
+  const metaRow = await resolveMetaAccountForLead(
+    supabase,
+    conv.organization_id,
+    lead?.meta_account_id
+  );
+
+  // Show typing indicator while Gemini thinks.
+  if (metaRow?.access_token && lead?.meta_user_id) {
+    void sendTypingIndicator(
+      metaRow.access_token,
+      metaRow.page_id,
+      lead.meta_user_id,
+      metaRow.oauth_provider
+    );
+  }
+
   const genAI = new GoogleGenerativeAI(geminiApiKey);
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
@@ -176,12 +192,6 @@ export async function generateAgentReply(
   const raw = result.response.text() ?? "";
   const { reply, qualified, booking, handoff } = parseActions(raw);
   if (!reply) return { ok: false, error: "empty_reply" };
-
-  const metaRow = await resolveMetaAccountForLead(
-    supabase,
-    conv.organization_id,
-    lead?.meta_account_id
-  );
 
   const { data: inserted } = await supabase
     .from("messages")
