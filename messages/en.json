@@ -67,7 +67,7 @@
     "billingTitle": "Billing",
     "integrations": {
       "connectInstagram": "Link Instagram Business",
-      "oauthBlurb": "Uses Facebook Login for Business with your configuration ID (direct OAuth dialog). On localhost this avoids Meta’s account-switch step that often shows “content isn’t available”. For production HTTPS you can try the Instagram-first screen from the second link.",
+      "oauthBlurb": "Uses Facebook Login for Business (config ID). If Meta shows “Sorry, this content isn’t available”, set env META_OAUTH_INSTAGRAM_VIA_SCOPES=1 on Vercel or use classic Facebook login below (no config ID).",
       "connectViaFacebookLink": "Classic Facebook login (scopes, no config ID)",
       "connectViaInstagramLoginPageLink": "Instagram-first screen (ManyChat-style, may fail on localhost)",
       "errorMissingBusinessConfig": "Set META_BUSINESS_LOGIN_CONFIG_ID in Vercel: Meta App → Facebook Login for Business → Configurations → copy the configuration ID. Add your redirect URL there and under Facebook Login settings.",

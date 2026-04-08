@@ -76,6 +76,18 @@ export async function GET(request: Request) {
     return NextResponse.redirect(authUrl);
   }
 
+  const useScopesOnly =
+    process.env.META_OAUTH_INSTAGRAM_VIA_SCOPES?.trim() === "1" ||
+    process.env.META_OAUTH_INSTAGRAM_VIA_SCOPES?.trim().toLowerCase() === "true";
+  if (useScopesOnly) {
+    const authUrl = buildMetaAuthorizeUrl({
+      clientId: appId,
+      redirectUri,
+      state,
+    });
+    return NextResponse.redirect(authUrl);
+  }
+
   const configId = process.env.META_BUSINESS_LOGIN_CONFIG_ID?.trim();
   if (!configId) {
     const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? reqUrl.origin;

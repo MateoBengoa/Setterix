@@ -39,9 +39,10 @@ export function buildMetaAuthorizeUrl(params: {
 }
 
 /**
- * Facebook Login for Business with config_id — single redirect, no business/loginpage.
- * Avoids the Instagram OIDC path that often hits /dialog/oauth/account_switch and shows
- * "Sorry, this content isn't available" on localhost or some accounts.
+ * Facebook Login for Business with config_id — single top-level redirect (no business/loginpage).
+ * Uses business.facebook.com (same host as Meta’s inner OAuth URLs) + display=page + ret=login.
+ * www.facebook.com/vX/dialog/oauth with config_id can still send some apps through account_switch.
+ * Set META_OAUTH_DIALOG_HOST=www to force the versioned www dialog.
  * @see https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business
  */
 export function buildLoginForBusinessDirectUrl(params: {
@@ -50,13 +51,20 @@ export function buildLoginForBusinessDirectUrl(params: {
   redirectUri: string;
   state: string;
 }): string {
-  const u = new URL(`${DIALOG}/dialog/oauth`);
+  const useWww =
+    process.env.META_OAUTH_DIALOG_HOST?.trim().toLowerCase() === "www";
+  const endpoint = useWww
+    ? `${DIALOG}/dialog/oauth`
+    : "https://business.facebook.com/dialog/oauth";
+  const u = new URL(endpoint);
   u.searchParams.set("client_id", params.clientId);
   u.searchParams.set("config_id", params.configId);
   u.searchParams.set("redirect_uri", params.redirectUri);
   u.searchParams.set("response_type", "code");
   u.searchParams.set("override_default_response_type", "1");
   u.searchParams.set("state", params.state);
+  u.searchParams.set("display", "page");
+  u.searchParams.set("ret", "login");
   return u.toString();
 }
 
@@ -77,6 +85,8 @@ export function buildMetaBusinessLoginPageUrl(params: {
   dialog.searchParams.set("response_type", "code");
   dialog.searchParams.set("override_default_response_type", "1");
   dialog.searchParams.set("state", params.state);
+  dialog.searchParams.set("display", "page");
+  dialog.searchParams.set("ret", "login");
 
   const page = new URL("https://business.facebook.com/business/loginpage/");
   page.searchParams.set("next", dialog.toString());
