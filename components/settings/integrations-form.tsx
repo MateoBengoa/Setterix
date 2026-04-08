@@ -35,11 +35,13 @@ export function IntegrationsForm({
   accounts: initial,
   locale,
   oauthFlash,
+  webhookCallbackUrl,
 }: {
   organizationId: string;
   accounts: Account[];
   locale: string;
   oauthFlash: { variant: "success" | "error"; message: string } | null;
+  webhookCallbackUrl: string;
 }) {
   const t = useTranslations("settings.integrations");
   const [accounts, setAccounts] = useState(initial);
@@ -84,6 +86,7 @@ export function IntegrationsForm({
         page_name: pageName || null,
         access_token: token,
         is_active: true,
+        oauth_provider: platform === "instagram" ? "instagram" : "facebook",
       })
       .select("*")
       .single();
@@ -107,6 +110,22 @@ export function IntegrationsForm({
           {oauthFlash.message}
         </div>
       ) : null}
+
+      {webhookCallbackUrl ? (
+        <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+          <h2 className="font-medium text-foreground">{t("liveSetupTitle")}</h2>
+          <ol className="list-decimal space-y-2 pl-5 text-muted-foreground">
+            <li>{t("liveSetupWebhookLine", { url: webhookCallbackUrl })}</li>
+            <li>{t("liveSetupVerifyLine")}</li>
+            <li>{t("liveSetupSubscribeLine")}</li>
+            <li>{t("liveSetupGeminiLine")}</li>
+          </ol>
+        </div>
+      ) : (
+        <p className="text-sm text-amber-600 dark:text-amber-500">
+          {t("liveSetupMissingAppUrl")}
+        </p>
+      )}
 
       {accounts.length > 0 ? (
         <div className="space-y-3 rounded-xl border border-border bg-card p-4">

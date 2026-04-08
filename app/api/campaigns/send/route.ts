@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendInstagramMessage } from "@/lib/meta/instagram";
 import { sendMessengerMessage } from "@/lib/meta/facebook";
+import { resolveMetaAccountForOrg } from "@/lib/meta/resolve-meta-account";
 
 export const dynamic = "force-dynamic";
 
@@ -43,13 +44,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const { data: metaAcc } = await admin
-    .from("meta_accounts")
-    .select("platform, access_token, page_id, oauth_provider")
-    .eq("organization_id", orgId)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
+  const metaAcc = await resolveMetaAccountForOrg(admin, orgId);
 
   if (!metaAcc?.access_token) {
     return NextResponse.json({ error: "no_meta_account" }, { status: 400 });

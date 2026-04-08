@@ -89,7 +89,13 @@
       "errorDenied": "Se canceló o rechazó el inicio de sesión en Meta.",
       "errorMissingAppUrl": "Error de configuración: falta NEXT_PUBLIC_APP_URL.",
       "errorGeneric": "No se pudo completar la conexión con Meta.",
-      "prodTokensNote": "Producción: guarda los tokens de Meta con Supabase Vault — nunca en texto plano."
+      "prodTokensNote": "Producción: guarda los tokens de Meta con Supabase Vault — nunca en texto plano.",
+      "liveSetupTitle": "Checklist para producción (DMs e IA)",
+      "liveSetupWebhookLine": "En Meta for Developers → Webhooks → URL de devolución de llamada: {url}",
+      "liveSetupVerifyLine": "El token de verificación del webhook debe coincidir con META_WEBHOOK_VERIFY_TOKEN en el servidor.",
+      "liveSetupSubscribeLine": "Suscríbete a los campos de mensajería de Instagram (API con inicio de sesión de Instagram). Sin esto, los DMs no llegan a la app.",
+      "liveSetupGeminiLine": "Define GEMINI_API_KEY en el servidor (p. ej. Vercel). El webhook invoca la IA directamente; sin la clave, se guardan mensajes pero no hay respuesta automática.",
+      "liveSetupMissingAppUrl": "Configura NEXT_PUBLIC_APP_URL con la URL pública del sitio para mostrar la URL exacta del webhook a pegar en Meta."
     }
   },
   "privacy": {

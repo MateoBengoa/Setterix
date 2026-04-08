@@ -94,6 +94,9 @@ export default async function IntegrationsPage({
   const flash = oauthFlashFromParams(searchParams, t, accountRows);
   const tSettings = await getTranslations("settings");
 
+  const appBase = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "";
+  const webhookCallbackUrl = appBase ? `${appBase}/api/webhooks/meta` : "";
+
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <h1 className="text-2xl font-semibold">{tSettings("integrationsTitle")}</h1>
@@ -103,6 +106,7 @@ export default async function IntegrationsPage({
         accounts={accounts ?? []}
         locale={locale}
         oauthFlash={flash}
+        webhookCallbackUrl={webhookCallbackUrl}
       />
     </div>
   );

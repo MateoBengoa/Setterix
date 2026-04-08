@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { incrementAnalytics } from "@/lib/analytics/attribution";
+import { generateAgentReply } from "@/lib/ai/agent";
 
 export const dynamic = "force-dynamic";
 
@@ -20,14 +21,19 @@ export async function GET(req: Request) {
 }
 
 type MessagingEvent = {
-  sender?: { id?: string };
+  sender?: { id?: string | number };
   message?: { mid?: string; text?: string };
 };
+
+function webhookAccountId(raw: string | number | undefined): string {
+  if (raw === undefined || raw === null) return "";
+  return String(raw);
+}
 
 export async function POST(req: Request) {
   let body: {
     object?: string;
-    entry?: { id?: string; messaging?: MessagingEvent[] }[];
+    entry?: { id?: string | number; messaging?: MessagingEvent[] }[];
   };
   try {
     body = await req.json();
@@ -38,9 +44,11 @@ export async function POST(req: Request) {
   const supabase = createAdminClient();
 
   for (const entry of body.entry ?? []) {
-    const pageId = entry.id ?? "";
+    const pageId = webhookAccountId(entry.id);
+    if (!pageId) continue;
+
     for (const evt of entry.messaging ?? []) {
-      const metaUserId = evt.sender?.id;
+      const metaUserId = webhookAccountId(evt.sender?.id);
       const text = evt.message?.text?.trim();
       const mid = evt.message?.mid;
       if (!metaUserId || !text || !mid) continue;
@@ -55,13 +63,22 @@ export async function POST(req: Request) {
       const platform =
         body.object === "instagram" ? "instagram" : "facebook";
 
-      const { data: metaAcc } = await supabase
+      let { data: metaAcc } = await supabase
         .from("meta_accounts")
         .select("id, organization_id")
         .eq("page_id", pageId)
         .eq("platform", platform)
         .eq("is_active", true)
         .maybeSingle();
+
+      if (!metaAcc) {
+        ({ data: metaAcc } = await supabase
+          .from("meta_accounts")
+          .select("id, organization_id")
+          .eq("page_id", pageId)
+          .eq("is_active", true)
+          .maybeSingle());
+      }
 
       if (!metaAcc) continue;
 
@@ -70,7 +87,7 @@ export async function POST(req: Request) {
 
       const { data: leadRow } = await supabase
         .from("leads")
-        .select("id")
+        .select("id, meta_account_id")
         .eq("organization_id", orgId)
         .eq("meta_user_id", metaUserId)
         .maybeSingle();
@@ -85,9 +102,14 @@ export async function POST(req: Request) {
             meta_user_id: metaUserId,
             status: "qualifying",
           })
-          .select("id")
+          .select("id, meta_account_id")
           .single();
         lead = inserted;
+      } else if (leadRow && !leadRow.meta_account_id) {
+        await supabase
+          .from("leads")
+          .update({ meta_account_id: metaAcc.id })
+          .eq("id", leadRow.id);
       }
       if (!lead) continue;
 
@@ -136,17 +158,11 @@ export async function POST(req: Request) {
       }
 
       if (conv.is_ai_active !== false) {
-        const base = process.env.NEXT_PUBLIC_APP_URL;
-        const secret = process.env.INTERNAL_AGENT_SECRET;
         const key = process.env.GEMINI_API_KEY;
-        if (base && secret && key) {
-          void fetch(`${base.replace(/\/$/, "")}/api/agent/reply`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${secret}`,
-            },
-            body: JSON.stringify({ conversationId: conv.id }),
+        if (key) {
+          void generateAgentReply(conv.id, {
+            supabase,
+            geminiApiKey: key,
           }).catch(() => {});
         }
       }

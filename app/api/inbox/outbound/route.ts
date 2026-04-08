@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendInstagramMessage } from "@/lib/meta/instagram";
 import { sendMessengerMessage } from "@/lib/meta/facebook";
 import { incrementAnalytics } from "@/lib/analytics/attribution";
+import { resolveMetaAccountForLead } from "@/lib/meta/resolve-meta-account";
 
 export const dynamic = "force-dynamic";
 
@@ -46,17 +47,15 @@ export async function POST(req: Request) {
 
   const { data: lead } = await admin
     .from("leads")
-    .select("meta_user_id")
+    .select("meta_user_id, meta_account_id")
     .eq("id", conv.lead_id)
     .single();
 
-  const { data: metaAcc } = await admin
-    .from("meta_accounts")
-    .select("platform, access_token, page_id, oauth_provider")
-    .eq("organization_id", orgId)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
+  const metaAcc = await resolveMetaAccountForLead(
+    admin,
+    orgId,
+    lead?.meta_account_id
+  );
 
   const { data: inserted } = await supabase.from("messages").insert({
     conversation_id: conversationId,

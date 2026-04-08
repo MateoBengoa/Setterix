@@ -89,7 +89,13 @@
       "errorDenied": "Meta login was cancelled or denied.",
       "errorMissingAppUrl": "Server misconfiguration: NEXT_PUBLIC_APP_URL is missing.",
       "errorGeneric": "Could not complete Meta connection.",
-      "prodTokensNote": "Production: store Meta tokens with Supabase Vault — never commit plaintext."
+      "prodTokensNote": "Production: store Meta tokens with Supabase Vault — never commit plaintext.",
+      "liveSetupTitle": "Go live checklist (DMs & AI)",
+      "liveSetupWebhookLine": "In Meta Developer: Webhooks → Callback URL: {url}",
+      "liveSetupVerifyLine": "Webhook verify token must exactly match META_WEBHOOK_VERIFY_TOKEN in your server env.",
+      "liveSetupSubscribeLine": "Subscribe to messaging fields for Instagram (Instagram API with Instagram Login). Without this, inbound DMs never reach the inbox.",
+      "liveSetupGeminiLine": "Set GEMINI_API_KEY on the server (e.g. Vercel). The webhook calls the AI directly; without this key, messages are stored but not auto-replied.",
+      "liveSetupMissingAppUrl": "Set NEXT_PUBLIC_APP_URL to your public site URL so we can show the exact webhook callback to paste in Meta."
     }
   },
   "privacy": {

@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendInstagramMessage } from "@/lib/meta/instagram";
 import { sendMessengerMessage } from "@/lib/meta/facebook";
 import { incrementAnalytics } from "@/lib/analytics/attribution";
+import { resolveMetaAccountForLead } from "@/lib/meta/resolve-meta-account";
 
 export type AgentDeps = {
   supabase: SupabaseClient;
@@ -176,13 +177,11 @@ export async function generateAgentReply(
   const { reply, qualified, booking, handoff } = parseActions(raw);
   if (!reply) return { ok: false, error: "empty_reply" };
 
-  const { data: metaRow } = await supabase
-    .from("meta_accounts")
-    .select("id, platform, access_token, page_id, oauth_provider")
-    .eq("organization_id", conv.organization_id)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
+  const metaRow = await resolveMetaAccountForLead(
+    supabase,
+    conv.organization_id,
+    lead?.meta_account_id
+  );
 
   const { data: inserted } = await supabase
     .from("messages")
