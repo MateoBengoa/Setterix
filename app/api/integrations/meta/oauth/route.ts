@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { buildInstagramAuthorizeUrl } from "@/lib/meta/instagram-oauth";
+import {
+  buildInstagramAuthorizeUrl,
+  instagramOAuthClientId,
+} from "@/lib/meta/instagram-oauth";
 import {
   buildLoginForBusinessDirectUrl,
   buildMetaAuthorizeUrl,
@@ -73,7 +76,7 @@ export async function GET(request: Request) {
   if (useNativeInstagram) {
     cookieStore.set(COOKIE_FLOW, FLOW_IG_NATIVE, cookieOpts);
     const authUrl = buildInstagramAuthorizeUrl({
-      clientId: appId,
+      clientId: instagramOAuthClientId(appId),
       redirectUri,
       state,
     });

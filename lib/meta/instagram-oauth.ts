@@ -1,7 +1,20 @@
 /**
  * Instagram API with Instagram Login — pantalla de login de Instagram (no Facebook).
  * @see https://developers.facebook.com/docs/instagram-platform/reference/oauth-authorize/
+ *
+ * Credenciales: por defecto META_APP_ID / META_APP_SECRET.
+ * Si Meta te da un ID/secreto solo para Instagram distintos, usa META_IG_APP_ID / META_IG_APP_SECRET.
  */
+export function instagramOAuthClientId(fallbackFacebookAppId: string): string {
+  const v = process.env.META_IG_APP_ID?.trim();
+  return v || fallbackFacebookAppId;
+}
+
+function instagramOAuthClientSecret(): string {
+  const v = process.env.META_IG_APP_SECRET?.trim();
+  return v || process.env.META_APP_SECRET || "";
+}
+
 const IG_AUTHORIZE = "https://api.instagram.com/oauth/authorize";
 const IG_ACCESS_TOKEN = "https://api.instagram.com/oauth/access_token";
 
@@ -29,8 +42,8 @@ export async function exchangeInstagramCodeForShortLivedToken(
   redirectUri: string
 ): Promise<{ accessToken: string; userId?: string }> {
   const body = new URLSearchParams({
-    client_id: process.env.META_APP_ID!,
-    client_secret: process.env.META_APP_SECRET!,
+    client_id: instagramOAuthClientId(process.env.META_APP_ID || ""),
+    client_secret: instagramOAuthClientSecret(),
     grant_type: "authorization_code",
     redirect_uri: redirectUri,
     code,
@@ -67,7 +80,7 @@ export async function exchangeInstagramForLongLivedToken(
 ): Promise<{ accessToken: string; expiresIn?: number }> {
   const u = new URL("https://graph.instagram.com/access_token");
   u.searchParams.set("grant_type", "ig_exchange_token");
-  u.searchParams.set("client_secret", process.env.META_APP_SECRET!);
+  u.searchParams.set("client_secret", instagramOAuthClientSecret());
   u.searchParams.set("access_token", shortLivedUserToken);
   const res = await fetch(u.toString());
   const json = (await res.json()) as {
