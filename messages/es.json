@@ -104,7 +104,13 @@
       "webhookDiagButton": "Diagnóstico de webhook / bandeja",
       "webhookDiagHint": "Si la bandeja sigue vacía, ejecuta esto y corrige lo que marque (sobre todo SUPABASE_SERVICE_ROLE_KEY en Vercel).",
       "webhookDiagLoading": "Cargando…",
-      "webhookDiagError": "No se pudo cargar el diagnóstico."
+      "webhookDiagError": "No se pudo cargar el diagnóstico.",
+      "webhookSimulateButton": "Simular un DM entrante (prueba)",
+      "webhookSimulateHint": "Envía el mismo tipo de POST que Meta. Si tras OK la bandeja sigue vacía, revisa en Vercel Logs [meta-webhook] POST received y abre Inbox.",
+      "webhookSimulateDmText": "Mensaje de prueba desde Integraciones (webhook simulado)",
+      "webhookSimulateNoAccount": "Primero conecta una cuenta de Instagram con page_id.",
+      "webhookSimulateOk": "Listo — abre Inbox o vuelve a ejecutar diagnósticos (conversationCount debería ser ≥ 1).",
+      "webhookSimulateFail": "El webhook respondió {status}. Revisa el deploy y las variables en Vercel."
     }
   },
   "privacy": {

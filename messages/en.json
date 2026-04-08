@@ -104,7 +104,13 @@
       "webhookDiagButton": "Run webhook / inbox diagnostics",
       "webhookDiagHint": "If the Inbox stays empty, run this and fix any item shown (especially SUPABASE_SERVICE_ROLE_KEY on Vercel).",
       "webhookDiagLoading": "Loading…",
-      "webhookDiagError": "Could not load diagnostics."
+      "webhookDiagError": "Could not load diagnostics.",
+      "webhookSimulateButton": "Simulate one inbound DM (test)",
+      "webhookSimulateHint": "Sends the same kind of POST Meta would send. If Inbox still stays empty after success, check Vercel Logs for [meta-webhook] POST received, then open Inbox.",
+      "webhookSimulateDmText": "Test message from Integrations (simulated webhook)",
+      "webhookSimulateNoAccount": "Connect an Instagram account with a page_id first.",
+      "webhookSimulateOk": "OK — open Inbox or run diagnostics again (conversationCount should be ≥ 1).",
+      "webhookSimulateFail": "Webhook returned {status}. Check Vercel deployment and env."
     }
   },
   "privacy": {

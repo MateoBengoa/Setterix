@@ -50,6 +50,8 @@ export function IntegrationsForm({
   const [pageName, setPageName] = useState("");
   const [token, setToken] = useState("");
   const [webhookDiag, setWebhookDiag] = useState<string | null>(null);
+  const [simulateMsg, setSimulateMsg] = useState<string | null>(null);
+  const [simulateBusy, setSimulateBusy] = useState(false);
 
   async function runWebhookDiagnostics() {
     setWebhookDiag(t("webhookDiagLoading"));
@@ -59,6 +61,54 @@ export function IntegrationsForm({
       setWebhookDiag(JSON.stringify(json, null, 2));
     } catch {
       setWebhookDiag(t("webhookDiagError"));
+    }
+  }
+
+  async function simulateInboundWebhook() {
+    const ig = accounts.find(
+      (a) => a.platform === "instagram" && a.page_id?.trim()
+    );
+    if (!ig?.page_id?.trim()) {
+      setSimulateMsg(t("webhookSimulateNoAccount"));
+      return;
+    }
+    setSimulateBusy(true);
+    setSimulateMsg(null);
+    const pid = ig.page_id.trim();
+    try {
+      const res = await fetch("/api/webhooks/meta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          object: "instagram",
+          entry: [
+            {
+              id: pid,
+              messaging: [
+                {
+                  sender: { id: "1000000000000001" },
+                  recipient: { id: pid },
+                  message: {
+                    mid: `setterix-ui-${Date.now()}`,
+                    text: t("webhookSimulateDmText"),
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      });
+      if (res.ok) {
+        setSimulateMsg(t("webhookSimulateOk"));
+      } else {
+        setSimulateMsg(
+          t("webhookSimulateFail", { status: String(res.status) })
+        );
+      }
+    } catch {
+      setSimulateMsg(t("webhookSimulateFail", { status: "network" }));
+    } finally {
+      setSimulateBusy(false);
     }
   }
 
@@ -126,14 +176,31 @@ export function IntegrationsForm({
       <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-4 text-sm">
         <h2 className="font-medium text-foreground">{t("webhookDiagTitle")}</h2>
         <p className="text-xs text-muted-foreground">{t("webhookDiagHint")}</p>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => void runWebhookDiagnostics()}
-        >
-          {t("webhookDiagButton")}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => void runWebhookDiagnostics()}
+          >
+            {t("webhookDiagButton")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={simulateBusy || !accounts.some((a) => a.page_id?.trim())}
+            onClick={() => void simulateInboundWebhook()}
+          >
+            {t("webhookSimulateButton")}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">{t("webhookSimulateHint")}</p>
+        {simulateMsg ? (
+          <p className="text-xs text-foreground" role="status">
+            {simulateMsg}
+          </p>
+        ) : null}
         {webhookDiag ? (
           <pre className="mt-3 max-h-64 overflow-auto rounded-lg bg-background p-3 text-xs">
             {webhookDiag}
