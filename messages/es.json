@@ -110,7 +110,22 @@
       "webhookSimulateDmText": "Mensaje de prueba desde Integraciones (webhook simulado)",
       "webhookSimulateNoAccount": "Primero conecta una cuenta de Instagram con page_id.",
       "webhookSimulateOk": "Listo — abre Inbox o vuelve a ejecutar diagnósticos (conversationCount debería ser ≥ 1).",
-      "webhookSimulateFail": "El webhook respondió {status}. Revisa el deploy y las variables en Vercel."
+      "webhookSimulateFail": "El webhook respondió {status}. Revisa el deploy y las variables en Vercel.",
+      "webhookAnalyzeTitle": "Depurar una entrega real de Meta (pegar JSON)",
+      "webhookAnalyzeHint": "En Meta → Webhooks → Entregas recientes, abre una entrega y copia el cuerpo JSON del POST. Pégalo aquí y analiza — solo comparamos IDs; no se guarda nada.",
+      "webhookAnalyzePlaceholder": "Pega aquí el JSON completo del cuerpo de la entrega…",
+      "webhookAnalyzeButton": "Analizar JSON de la entrega",
+      "webhookAnalyzeLoading": "Analizando…",
+      "webhookAnalyzeError": "No se pudo analizar (red o servidor).",
+      "webhookAnalyzeEmpty": "Primero pega el JSON de Meta.",
+      "realDmTitle": "¿El test funciona pero no ves los DMs reales de Instagram?",
+      "realDmIntro": "El botón de simular solo envía un POST falso desde tu navegador. Los DMs reales exigen que Meta envíe ese POST cuando alguien escribe a tu cuenta profesional.",
+      "realDmStep1": "Panel de la app Meta → Webhooks: la URL de devolución debe ser exactamente {url} (la misma que aquí). El token de verificación debe coincidir con META_WEBHOOK_VERIFY_TOKEN.",
+      "realDmStep2": "Suscríbete al objeto instagram a campos de mensajería (p. ej. messages, messaging_postbacks). Solo comentarios/menciones no rellenan esta bandeja de DMs.",
+      "realDmStep3": "Si la app está en desarrollo: los webhooks solo llegan a testers/desarrolladores. Añade roles en la app (Instagram tester / probador) para las cuentas que usas, o pasa revisión y publica la app.",
+      "realDmStep4": "Envía un DM desde otra cuenta de Instagram a tu perfil de negocio (cuenta profesional). Probar con la misma cuenta no equivale a un cliente.",
+      "realDmStep5": "En la app Meta → Webhooks → entregas recientes: al enviar un DM real debería aparecer un intento POST. Si no hay ninguno, Meta no está suscrito para esa cuenta — corrige producto/campos en Meta, no en Setterix.",
+      "realDmDocs": "Meta: Webhooks para Instagram"
     }
   },
   "privacy": {

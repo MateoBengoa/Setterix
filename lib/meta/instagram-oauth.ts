@@ -109,23 +109,65 @@ export async function exchangeInstagramForLongLivedToken(
 
 const IG_GRAPH = "https://graph.instagram.com/v21.0";
 
+/**
+ * Instagram Login: `id` on /me can be app-scoped; webhooks use the professional
+ * account id (often in `user_id`). We prefer `user_id` for DB rows so lookup matches
+ * entry.id / recipient.id in POST payloads.
+ * @see https://stackoverflow.com/questions/79319817/mismatch-between-ids-in-instagram-webhooks-and-graph-api
+ */
 export async function fetchInstagramMe(accessToken: string): Promise<{
   id: string;
   username?: string;
   name?: string;
+  /** Present when Meta returned both — same as `id` when we prefer user_id */
+  appScopedId?: string;
 }> {
-  const u = new URL(`${IG_GRAPH}/me`);
-  u.searchParams.set("fields", "id,username,name");
-  u.searchParams.set("access_token", accessToken);
-  const res = await fetch(u.toString());
-  const json = (await res.json()) as {
+  async function fetchFields(
+    fields: string
+  ): Promise<{
     id?: string;
+    user_id?: string | number;
     username?: string;
     name?: string;
     error?: { message: string };
-  };
-  if (!res.ok || !json.id) {
+  }> {
+    const u = new URL(`${IG_GRAPH}/me`);
+    u.searchParams.set("fields", fields);
+    u.searchParams.set("access_token", accessToken);
+    const res = await fetch(u.toString());
+    return (await res.json()) as {
+      id?: string;
+      user_id?: string | number;
+      username?: string;
+      name?: string;
+      error?: { message: string };
+    };
+  }
+
+  let json = await fetchFields("id,user_id,username,name");
+  if (
+    !json.id &&
+    json.error?.message &&
+    (json.error.message.includes("user_id") ||
+      json.error.message.includes("(#100)"))
+  ) {
+    json = await fetchFields("id,username,name");
+  }
+
+  if (!json.id) {
     throw new Error(json.error?.message ?? "Failed to load Instagram profile");
   }
-  return { id: json.id, username: json.username, name: json.name };
+
+  const userIdRaw = json.user_id;
+  const professionalId =
+    userIdRaw !== undefined && userIdRaw !== null && String(userIdRaw).trim()
+      ? String(userIdRaw)
+      : json.id;
+
+  return {
+    id: professionalId,
+    username: json.username,
+    name: json.name,
+    appScopedId: professionalId !== json.id ? json.id : undefined,
+  };
 }

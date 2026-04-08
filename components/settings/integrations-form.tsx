@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -52,6 +53,9 @@ export function IntegrationsForm({
   const [webhookDiag, setWebhookDiag] = useState<string | null>(null);
   const [simulateMsg, setSimulateMsg] = useState<string | null>(null);
   const [simulateBusy, setSimulateBusy] = useState(false);
+  const [deliveryJson, setDeliveryJson] = useState("");
+  const [analyzeOut, setAnalyzeOut] = useState<string | null>(null);
+  const [analyzeBusy, setAnalyzeBusy] = useState(false);
 
   async function runWebhookDiagnostics() {
     setWebhookDiag(t("webhookDiagLoading"));
@@ -61,6 +65,29 @@ export function IntegrationsForm({
       setWebhookDiag(JSON.stringify(json, null, 2));
     } catch {
       setWebhookDiag(t("webhookDiagError"));
+    }
+  }
+
+  async function analyzeMetaDelivery() {
+    const raw = deliveryJson.trim();
+    if (!raw) {
+      setAnalyzeOut(t("webhookAnalyzeEmpty"));
+      return;
+    }
+    setAnalyzeBusy(true);
+    setAnalyzeOut(null);
+    try {
+      const res = await fetch("/api/integrations/meta/webhook-analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: raw,
+      });
+      const json = (await res.json()) as unknown;
+      setAnalyzeOut(JSON.stringify(json, null, 2));
+    } catch {
+      setAnalyzeOut(t("webhookAnalyzeError"));
+    } finally {
+      setAnalyzeBusy(false);
     }
   }
 
@@ -206,6 +233,34 @@ export function IntegrationsForm({
             {webhookDiag}
           </pre>
         ) : null}
+
+        <div className="mt-4 space-y-2 border-t border-border pt-4">
+          <h3 className="text-sm font-medium text-foreground">
+            {t("webhookAnalyzeTitle")}
+          </h3>
+          <p className="text-xs text-muted-foreground">{t("webhookAnalyzeHint")}</p>
+          <Textarea
+            value={deliveryJson}
+            onChange={(e) => setDeliveryJson(e.target.value)}
+            placeholder={t("webhookAnalyzePlaceholder")}
+            className="min-h-[120px] font-mono text-xs"
+            spellCheck={false}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={analyzeBusy}
+            onClick={() => void analyzeMetaDelivery()}
+          >
+            {analyzeBusy ? t("webhookAnalyzeLoading") : t("webhookAnalyzeButton")}
+          </Button>
+          {analyzeOut ? (
+            <pre className="max-h-72 overflow-auto rounded-lg bg-background p-3 text-xs">
+              {analyzeOut}
+            </pre>
+          ) : null}
+        </div>
       </div>
 
       {webhookCallbackUrl ? (
@@ -243,6 +298,30 @@ export function IntegrationsForm({
               </li>
             ))}
           </ul>
+        </div>
+      ) : null}
+
+      {accounts.length > 0 && webhookCallbackUrl ? (
+        <div className="space-y-3 rounded-xl border border-amber-500/35 bg-amber-500/[0.06] p-4 text-sm">
+          <h2 className="font-medium text-foreground">{t("realDmTitle")}</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            {t("realDmIntro")}
+          </p>
+          <ol className="list-decimal space-y-2 pl-5 text-muted-foreground leading-relaxed">
+            <li>{t("realDmStep1", { url: webhookCallbackUrl })}</li>
+            <li>{t("realDmStep2")}</li>
+            <li>{t("realDmStep3")}</li>
+            <li>{t("realDmStep4")}</li>
+            <li>{t("realDmStep5")}</li>
+          </ol>
+          <a
+            href="https://developers.facebook.com/docs/graph-api/webhooks/getting-started/webhooks-for-instagram/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-primary underline-offset-4 hover:underline"
+          >
+            {t("realDmDocs")}
+          </a>
         </div>
       ) : null}
 

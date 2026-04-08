@@ -110,7 +110,22 @@
       "webhookSimulateDmText": "Test message from Integrations (simulated webhook)",
       "webhookSimulateNoAccount": "Connect an Instagram account with a page_id first.",
       "webhookSimulateOk": "OK — open Inbox or run diagnostics again (conversationCount should be ≥ 1).",
-      "webhookSimulateFail": "Webhook returned {status}. Check Vercel deployment and env."
+      "webhookSimulateFail": "Webhook returned {status}. Check Vercel deployment and env.",
+      "webhookAnalyzeTitle": "Debug a real Meta delivery (paste JSON)",
+      "webhookAnalyzeHint": "In Meta → Webhooks → Recent deliveries, open a delivery and copy the request body JSON. Paste it here and run analysis — we only compare IDs; nothing is saved.",
+      "webhookAnalyzePlaceholder": "Paste the full JSON body from a Meta webhook delivery…",
+      "webhookAnalyzeButton": "Analyze delivery JSON",
+      "webhookAnalyzeLoading": "Analyzing…",
+      "webhookAnalyzeError": "Could not analyze (network or server error).",
+      "webhookAnalyzeEmpty": "Paste JSON from Meta first.",
+      "realDmTitle": "Test works but real Instagram DMs don’t appear?",
+      "realDmIntro": "The simulate button only sends a fake POST from your browser. Live DMs require Meta to send the same POST when someone messages your professional account.",
+      "realDmStep1": "Meta App Dashboard → Webhooks: Callback URL must be exactly {url} (same as here). Verify token = META_WEBHOOK_VERIFY_TOKEN.",
+      "realDmStep2": "Subscribe the instagram object to messaging fields (e.g. messages, messaging_postbacks). Comments/mentions alone will not show DMs in this inbox.",
+      "realDmStep3": "If the app is in Development: only testers/developers get webhooks. Add roles under App → Roles (Instagram tester / app tester) for the accounts involved, or complete App Review and go Live.",
+      "realDmStep4": "Send a DM from a different Instagram account to your business profile (professional account). Same-account tests often don’t behave like customer DMs.",
+      "realDmStep5": "Meta App → Webhooks → Recent deliveries: when you send a real DM, you should see a POST attempt. If there are zero attempts, Meta is not subscribed for that IG account — fix product/fields above, not Setterix.",
+      "realDmDocs": "Meta: Webhooks for Instagram"
     }
   },
   "privacy": {
