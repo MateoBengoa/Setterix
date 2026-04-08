@@ -14,7 +14,7 @@ export default async function InboxPage() {
   const { data: conversations } = await supabase
     .from("conversations")
     .select(
-      "id, is_ai_active, last_message_at, lead_id, leads ( name, username, status, qualification_data, estimated_value, notes )"
+      "id, is_ai_active, last_message_at, lead_id, leads ( name, username, profile_picture_url, status, qualification_data, estimated_value, notes )"
     )
     .eq("organization_id", org.id)
     .order("last_message_at", { ascending: false, nullsFirst: false });

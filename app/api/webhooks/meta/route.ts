@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { incrementAnalytics } from "@/lib/analytics/attribution";
 import { generateAgentReply } from "@/lib/ai/agent";
 import { findMetaAccountByWebhookIds } from "@/lib/meta/find-meta-account-webhook";
+import { fetchMetaUserProfile } from "@/lib/meta/instagram";
 import {
   envelopeEntries,
   messageMidFromPayload,
@@ -113,7 +114,7 @@ async function processMessagingEvent(
 
   const { data: leadRow } = await supabase
     .from("leads")
-    .select("id, meta_account_id")
+    .select("id, meta_account_id, name, username")
     .eq("organization_id", orgId)
     .eq("meta_user_id", metaUserId)
     .maybeSingle();
@@ -128,7 +129,7 @@ async function processMessagingEvent(
         meta_user_id: metaUserId,
         status: "qualifying",
       })
-      .select("id, meta_account_id")
+      .select("id, meta_account_id, name, username")
       .single();
     if (insLeadErr) {
       console.error("[meta-webhook] lead insert", insLeadErr.message);
@@ -142,6 +143,30 @@ async function processMessagingEvent(
       .eq("id", leadRow.id);
   }
   if (!lead) return;
+
+  // Fetch and store profile (name, username, photo) if not yet populated.
+  if (!lead.name && !lead.username) {
+    void fetchMetaUserProfile(
+      metaAcc.access_token,
+      metaUserId,
+      metaAcc.oauth_provider
+    ).then((profile) => {
+      if (!profile.name && !profile.username && !profile.profile_picture_url)
+        return;
+      return supabase
+        .from("leads")
+        .update({
+          ...(profile.name && { name: profile.name }),
+          ...(profile.username && { username: profile.username }),
+          ...(profile.profile_picture_url && {
+            profile_picture_url: profile.profile_picture_url,
+          }),
+        })
+        .eq("id", lead!.id);
+    }).catch((e) =>
+      console.error("[meta-webhook] fetchMetaUserProfile", String(e))
+    );
+  }
 
   const { data: convRow } = await supabase
     .from("conversations")

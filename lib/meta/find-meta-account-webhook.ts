@@ -9,13 +9,18 @@ import { isSafeMetaNumericId } from "@/lib/meta/meta-webhook-payload";
 export async function findMetaAccountByWebhookIds(
   supabase: SupabaseClient,
   candidateIds: string[]
-): Promise<{ id: string; organization_id: string } | null> {
+): Promise<{
+  id: string;
+  organization_id: string;
+  access_token: string;
+  oauth_provider: string | null;
+} | null> {
   for (const pid of candidateIds) {
     if (!isSafeMetaNumericId(pid)) continue;
 
     const { data: byIg, error: errIg } = await supabase
       .from("meta_accounts")
-      .select("id, organization_id")
+      .select("id, organization_id, access_token, oauth_provider")
       .eq("is_active", true)
       .or(`page_id.eq.${pid},meta_user_id.eq.${pid}`)
       .limit(1);
@@ -28,7 +33,7 @@ export async function findMetaAccountByWebhookIds(
 
     const { data: byPage, error: errPage } = await supabase
       .from("meta_accounts")
-      .select("id, organization_id")
+      .select("id, organization_id, access_token, oauth_provider")
       .eq("is_active", true)
       .eq("facebook_page_id", pid)
       .limit(1);

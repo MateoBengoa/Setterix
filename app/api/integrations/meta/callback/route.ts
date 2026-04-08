@@ -79,33 +79,36 @@ export async function GET(request: Request) {
 
   if (oauthFlow === FLOW_IG_NATIVE) {
     try {
-      const { accessToken: short } = await exchangeInstagramCodeForShortLivedToken(
-        code,
-        redirectUri
-      );
+      const { accessToken: short, userId: exchangeUserId } =
+        await exchangeInstagramCodeForShortLivedToken(code, redirectUri);
       const { accessToken: longToken, expiresIn } =
         await exchangeInstagramForLongLivedToken(short);
       const me = await fetchInstagramMe(longToken);
 
-      const display = me.username ? `@${me.username}` : me.name ?? me.id;
+      // exchangeUserId (from token exchange body) matches webhook entry.id / recipient.id.
+      // me.id may be app-scoped and differ from the webhook id — prefer exchangeUserId.
+      const igId = exchangeUserId ?? me.id;
+
+      const display = me.username ? `@${me.username}` : me.name ?? igId;
       const tokenExpiresAt =
         typeof expiresIn === "number"
           ? new Date(Date.now() + expiresIn * 1000).toISOString()
           : null;
 
+      // Search by both possible IDs so reconnecting always finds the existing row.
       const { data: existing } = await supabase
         .from("meta_accounts")
         .select("id")
         .eq("organization_id", orgId)
-        .eq("page_id", me.id)
         .eq("platform", "instagram")
+        .or(`page_id.eq.${igId},page_id.eq.${me.id}`)
         .maybeSingle();
 
       const row = {
         organization_id: orgId,
         platform: "instagram" as const,
-        meta_user_id: me.id,
-        page_id: me.id,
+        meta_user_id: igId,
+        page_id: igId,
         page_name: display,
         access_token: longToken,
         token_expires_at: tokenExpiresAt,

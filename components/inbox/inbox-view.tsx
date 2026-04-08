@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/routing";
 
 const CONVERSATION_LIST_SELECT =
-  "id, is_ai_active, last_message_at, lead_id, leads ( name, username, status, qualification_data, estimated_value, notes )";
+  "id, is_ai_active, last_message_at, lead_id, leads ( name, username, profile_picture_url, status, qualification_data, estimated_value, notes )";
 
 export type ConvRow = {
   id: string;
@@ -39,6 +39,7 @@ export type ConvRow = {
   leads: {
     name: string | null;
     username: string | null;
+    profile_picture_url: string | null;
     status: string | null;
     qualification_data: unknown;
     estimated_value: number | null;
@@ -250,13 +251,18 @@ export function InboxView({
                       type="button"
                       onClick={() => setSelectedId(c.id)}
                       className={cn(
-                        "flex w-full flex-col rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                        "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                         selectedId === c.id
                           ? "border-primary bg-muted"
                           : "border-transparent hover:bg-muted/60"
                       )}
                     >
-                      <span className="font-medium">{title}</span>
+                      <Avatar className="size-8 shrink-0">
+                        <AvatarImage src={c.leads?.profile_picture_url ?? undefined} />
+                        <AvatarFallback>{title[0]?.toUpperCase() ?? "?"}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                      <span className="block font-medium truncate">{title}</span>
                       <span className="text-xs text-muted-foreground">
                         {c.last_message_at
                           ? new Date(c.last_message_at).toLocaleString()
@@ -265,6 +271,7 @@ export function InboxView({
                       <Badge variant="secondary" className="mt-1 w-fit text-[10px]">
                         {c.leads?.status ?? "—"}
                       </Badge>
+                      </div>
                     </button>
                   </li>
                 );
@@ -333,8 +340,11 @@ export function InboxView({
                 )}
               >
                 {m.direction === "inbound" ? (
-                  <Avatar className="size-8">
-                    <AvatarFallback>U</AvatarFallback>
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarImage src={selected?.leads?.profile_picture_url ?? undefined} />
+                    <AvatarFallback>
+                      {(selected?.leads?.name ?? selected?.leads?.username ?? "U")[0]?.toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 ) : null}
                 <div
