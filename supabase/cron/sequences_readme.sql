@@ -1,0 +1,14 @@
+-- pg_cron (Supabase): run hourly HTTP POST to your sequences worker Edge Function
+-- or Next.js API route that evaluates `sequences` + `conversations.last_message_at`.
+--
+-- Example (adjust URL and auth):
+-- select cron.schedule(
+--   'sequences-hourly',
+--   '0 * * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://YOUR_PROJECT.supabase.co/functions/v1/process-sequences',
+--     headers := '{"Authorization": "Bearer SERVICE_ROLE"}'::jsonb
+--   );
+--   $$
+-- );

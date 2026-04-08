@@ -1,0 +1,89 @@
+{
+  "common": {
+    "appName": "DM Automation",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "skip": "Omitir",
+    "loading": "Cargando…",
+    "error": "Algo salió mal"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "signup": "Crear cuenta",
+    "email": "Correo",
+    "password": "Contraseña",
+    "logout": "Cerrar sesión",
+    "google": "Continuar con Google",
+    "noAccount": "¿Sin cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "inbox": "Bandeja",
+    "leads": "Leads",
+    "campaigns": "Campañas",
+    "sequences": "Secuencias",
+    "meetings": "Reuniones",
+    "settings": "Ajustes",
+    "agent": "Agente",
+    "integrations": "Integraciones",
+    "team": "Equipo",
+    "billing": "Facturación"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "revenueAttributed": "Ingresos atribuidos",
+    "conversationsStarted": "Conversaciones iniciadas",
+    "meetingsBooked": "Reuniones agendadas",
+    "conversionRate": "Tasa de conversión",
+    "hotLeads": "Leads calientes ahora",
+    "viewConversation": "Ver conversación",
+    "nudgeCampaign": "Configura tu primera campaña",
+    "nudgeDismiss": "Cerrar",
+    "subtitle": "Resumen de los últimos 30 días",
+    "chartTitle": "30 días",
+    "chartLegend": "Reuniones e ingresos",
+    "noQualifyingLeads": "No hay leads en calificación."
+  },
+  "inbox": {
+    "title": "Bandeja",
+    "aiActive": "IA activa",
+    "humanMode": "Humano",
+    "handoffConfirm": "¿Desactivar la IA en esta conversación?",
+    "send": "Enviar",
+    "typeMessage": "Escribe un mensaje…"
+  },
+  "leads": {
+    "title": "Leads",
+    "status": "Estado",
+    "name": "Nombre",
+    "platform": "Plataforma"
+  },
+  "settings": {
+    "agentTitle": "Configuración del agente",
+    "integrationsTitle": "Integraciones",
+    "teamTitle": "Equipo",
+    "billingTitle": "Facturación",
+    "integrations": {
+      "connectInstagram": "Conectar con Instagram",
+      "oauthBlurb": "Inicia sesión con Meta para vincular cuentas de Instagram Business conectadas a tus páginas de Facebook. Guardamos el token de la página para enviar mensajes.",
+      "manualSection": "Token manual (avanzado / desarrollo)",
+      "oauthConnected": "Se conectaron {count} cuenta(s) de Instagram.",
+      "errorInvalidState": "La sesión de OAuth expiró. Vuelve a intentar la conexión.",
+      "errorNotSignedIn": "Debes iniciar sesión.",
+      "errorNoOrg": "No hay organización para tu cuenta.",
+      "errorNoInstagram": "No hay cuenta de Instagram Business en tus páginas. Vincula IG a una página en Meta Business Suite e inténtalo de nuevo.",
+      "errorDenied": "Se canceló o rechazó el inicio de sesión en Meta.",
+      "errorMissingAppUrl": "Error de configuración: falta NEXT_PUBLIC_APP_URL.",
+      "errorGeneric": "No se pudo completar la conexión con Meta.",
+      "prodTokensNote": "Producción: guarda los tokens de Meta con Supabase Vault — nunca en texto plano."
+    }
+  },
+  "onboarding": {
+    "meta": "Conectar Meta",
+    "agent": "Configurar agente",
+    "calendar": "Conectar calendario",
+    "step": "Paso {n}"
+  }
+}

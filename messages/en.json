@@ -1,0 +1,89 @@
+{
+  "common": {
+    "appName": "DM Automation",
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "skip": "Skip",
+    "loading": "Loading…",
+    "error": "Something went wrong"
+  },
+  "auth": {
+    "login": "Log in",
+    "signup": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "logout": "Log out",
+    "google": "Continue with Google",
+    "noAccount": "No account?",
+    "hasAccount": "Already have an account?"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "leads": "Leads",
+    "campaigns": "Campaigns",
+    "sequences": "Sequences",
+    "meetings": "Meetings",
+    "settings": "Settings",
+    "agent": "Agent",
+    "integrations": "Integrations",
+    "team": "Team",
+    "billing": "Billing"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "revenueAttributed": "Revenue attributed",
+    "conversationsStarted": "Conversations started",
+    "meetingsBooked": "Meetings booked",
+    "conversionRate": "Conversion rate",
+    "hotLeads": "Hot leads right now",
+    "viewConversation": "View conversation",
+    "nudgeCampaign": "Set up your first campaign",
+    "nudgeDismiss": "Dismiss",
+    "subtitle": "Last 30 days at a glance",
+    "chartTitle": "30 days",
+    "chartLegend": "Meetings and revenue",
+    "noQualifyingLeads": "No qualifying leads."
+  },
+  "inbox": {
+    "title": "Inbox",
+    "aiActive": "AI active",
+    "humanMode": "Human",
+    "handoffConfirm": "Turn off AI for this conversation?",
+    "send": "Send",
+    "typeMessage": "Type a message…"
+  },
+  "leads": {
+    "title": "Leads",
+    "status": "Status",
+    "name": "Name",
+    "platform": "Platform"
+  },
+  "settings": {
+    "agentTitle": "Agent configuration",
+    "integrationsTitle": "Integrations",
+    "teamTitle": "Team",
+    "billingTitle": "Billing",
+    "integrations": {
+      "connectInstagram": "Connect with Instagram",
+      "oauthBlurb": "Sign in with Meta to link Instagram Business accounts connected to your Facebook Pages. We store the page access token for messaging.",
+      "manualSection": "Manual token (advanced / dev)",
+      "oauthConnected": "Connected {count} Instagram account(s).",
+      "errorInvalidState": "OAuth session expired. Try connecting again.",
+      "errorNotSignedIn": "You must be signed in.",
+      "errorNoOrg": "No organization found for your account.",
+      "errorNoInstagram": "No Instagram Business account found on your Pages. Link IG to a Page in Meta Business Suite, then try again.",
+      "errorDenied": "Meta login was cancelled or denied.",
+      "errorMissingAppUrl": "Server misconfiguration: NEXT_PUBLIC_APP_URL is missing.",
+      "errorGeneric": "Could not complete Meta connection.",
+      "prodTokensNote": "Production: store Meta tokens with Supabase Vault — never commit plaintext."
+    }
+  },
+  "onboarding": {
+    "meta": "Connect Meta",
+    "agent": "Configure agent",
+    "calendar": "Connect calendar",
+    "step": "Step {n}"
+  }
+}
