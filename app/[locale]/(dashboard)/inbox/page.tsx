@@ -19,7 +19,10 @@ export default async function InboxPage() {
 
   return (
     <div className="space-y-4">
-      <InboxView initialConversations={(conversations ?? []) as never} />
+      <InboxView
+        organizationId={org.id}
+        initialConversations={(conversations ?? []) as never}
+      />
     </div>
   );
 }

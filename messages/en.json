@@ -52,7 +52,11 @@
     "humanMode": "Human",
     "handoffConfirm": "Turn off AI for this conversation?",
     "send": "Send",
-    "typeMessage": "Type a message…"
+    "typeMessage": "Type a message…",
+    "emptyTitle": "No conversations yet",
+    "emptyBody": "Conversations appear when Meta sends a webhook for a DM to your connected account. Send a test DM from another Instagram account to your business profile, then wait a few seconds. If nothing shows up, confirm in Meta: Webhooks callback URL, verify token, and subscription to Instagram messaging fields (see Settings → Integrations).",
+    "emptyIntegrations": "Open Integrations",
+    "emptyRealtime": "Tip: enable Supabase Realtime on tables conversations and messages so new DMs appear without refreshing the page."
   },
   "leads": {
     "title": "Leads",

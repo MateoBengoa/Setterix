@@ -22,12 +22,46 @@ export async function GET(req: Request) {
 
 type MessagingEvent = {
   sender?: { id?: string | number };
-  message?: { mid?: string; text?: string };
+  recipient?: { id?: string | number };
+  message?: {
+    mid?: string;
+    text?: string;
+    is_echo?: boolean;
+    attachments?: unknown[];
+  };
 };
 
 function webhookAccountId(raw: string | number | undefined): string {
   if (raw === undefined || raw === null) return "";
   return String(raw);
+}
+
+async function findMetaAccountForInbound(
+  supabase: ReturnType<typeof createAdminClient>,
+  candidatePageIds: string[],
+  objectType: string | undefined
+) {
+  const platform = objectType === "instagram" ? "instagram" : "facebook";
+  for (const pid of candidatePageIds) {
+    if (!pid) continue;
+    let { data: metaAcc } = await supabase
+      .from("meta_accounts")
+      .select("id, organization_id")
+      .eq("page_id", pid)
+      .eq("platform", platform)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (!metaAcc) {
+      ({ data: metaAcc } = await supabase
+        .from("meta_accounts")
+        .select("id, organization_id")
+        .eq("page_id", pid)
+        .eq("is_active", true)
+        .maybeSingle());
+    }
+    if (metaAcc) return metaAcc;
+  }
+  return null;
 }
 
 export async function POST(req: Request) {
@@ -44,14 +78,22 @@ export async function POST(req: Request) {
   const supabase = createAdminClient();
 
   for (const entry of body.entry ?? []) {
-    const pageId = webhookAccountId(entry.id);
-    if (!pageId) continue;
+    const entryAccountId = webhookAccountId(entry.id);
 
     for (const evt of entry.messaging ?? []) {
+      const msg = evt.message;
+      if (!msg?.mid || msg.is_echo) continue;
+
       const metaUserId = webhookAccountId(evt.sender?.id);
-      const text = evt.message?.text?.trim();
-      const mid = evt.message?.mid;
-      if (!metaUserId || !text || !mid) continue;
+      const recipientId = webhookAccountId(evt.recipient?.id);
+      const text =
+        msg.text?.trim() ||
+        (Array.isArray(msg.attachments) && msg.attachments.length > 0
+          ? "[Attachment]"
+          : "");
+      if (!metaUserId || !text) continue;
+
+      const mid = msg.mid;
 
       const { data: dupe } = await supabase
         .from("messages")
@@ -63,22 +105,18 @@ export async function POST(req: Request) {
       const platform =
         body.object === "instagram" ? "instagram" : "facebook";
 
-      let { data: metaAcc } = await supabase
-        .from("meta_accounts")
-        .select("id, organization_id")
-        .eq("page_id", pageId)
-        .eq("platform", platform)
-        .eq("is_active", true)
-        .maybeSingle();
-
-      if (!metaAcc) {
-        ({ data: metaAcc } = await supabase
-          .from("meta_accounts")
-          .select("id, organization_id")
-          .eq("page_id", pageId)
-          .eq("is_active", true)
-          .maybeSingle());
-      }
+      const candidateIds = Array.from(
+        new Set(
+          [entryAccountId, recipientId].filter(
+            (x): x is string => Boolean(x)
+          )
+        )
+      );
+      const metaAcc = await findMetaAccountForInbound(
+        supabase,
+        candidateIds,
+        body.object
+      );
 
       if (!metaAcc) continue;
 

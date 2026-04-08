@@ -52,7 +52,11 @@
     "humanMode": "Humano",
     "handoffConfirm": "¿Desactivar la IA en esta conversación?",
     "send": "Enviar",
-    "typeMessage": "Escribe un mensaje…"
+    "typeMessage": "Escribe un mensaje…",
+    "emptyTitle": "Aún no hay conversaciones",
+    "emptyBody": "Las conversaciones aparecen cuando Meta envía un webhook por un DM a tu cuenta conectada. Envía un DM de prueba desde otra cuenta de Instagram a tu perfil profesional y espera unos segundos. Si no aparece nada, revisa en Meta: URL del webhook, token de verificación y suscripción a mensajería de Instagram (Ajustes → Integraciones).",
+    "emptyIntegrations": "Abrir integraciones",
+    "emptyRealtime": "Consejo: activa Supabase Realtime en las tablas conversations y messages para ver nuevos DMs sin recargar."
   },
   "leads": {
     "title": "Leads",

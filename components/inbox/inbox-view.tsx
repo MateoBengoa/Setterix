@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,6 +20,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { BotIcon, UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/routing";
+
+const CONVERSATION_LIST_SELECT =
+  "id, is_ai_active, last_message_at, lead_id, leads ( name, username, status, qualification_data, estimated_value, notes )";
 
 export type ConvRow = {
   id: string;
@@ -45,8 +49,10 @@ type MsgRow = {
 };
 
 export function InboxView({
+  organizationId,
   initialConversations,
 }: {
+  organizationId: string;
   initialConversations: ConvRow[];
 }) {
   const t = useTranslations("inbox");
@@ -63,6 +69,44 @@ export function InboxView({
   const [confirmHandoff, setConfirmHandoff] = useState(false);
 
   const selected = conversations.find((c) => c.id === selectedId);
+
+  useEffect(() => {
+    if (!organizationId) return;
+    const channel = supabase
+      .channel(`org-conversations:${organizationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          filter: `organization_id=eq.${organizationId}`,
+        },
+        () => {
+          void (async () => {
+            const { data } = await supabase
+              .from("conversations")
+              .select(CONVERSATION_LIST_SELECT)
+              .eq("organization_id", organizationId)
+              .order("last_message_at", {
+                ascending: false,
+                nullsFirst: false,
+              });
+            if (!data) return;
+            const rows = data as unknown as ConvRow[];
+            setConversations(rows);
+            setSelectedId((prev) => {
+              if (prev && rows.some((c) => c.id === prev)) return prev;
+              return rows[0]?.id ?? null;
+            });
+          })();
+        }
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [organizationId, supabase]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -170,36 +214,50 @@ export function InboxView({
       <aside className="lg:w-72 lg:shrink-0 lg:border-r lg:border-border lg:pr-4">
         <h2 className="mb-2 text-lg font-semibold">{t("title")}</h2>
         <ScrollArea className="h-64 lg:h-[calc(100vh-10rem)]">
-          <ul className="space-y-1 pr-2">
-            {conversations.map((c) => {
-              const title =
-                c.leads?.name ?? c.leads?.username ?? "Conversation";
-              return (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(c.id)}
-                    className={cn(
-                      "flex w-full flex-col rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                      selectedId === c.id
-                        ? "border-primary bg-muted"
-                        : "border-transparent hover:bg-muted/60"
-                    )}
-                  >
-                    <span className="font-medium">{title}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {c.last_message_at
-                        ? new Date(c.last_message_at).toLocaleString()
-                        : "—"}
-                    </span>
-                    <Badge variant="secondary" className="mt-1 w-fit text-[10px]">
-                      {c.leads?.status ?? "—"}
-                    </Badge>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          {conversations.length === 0 ? (
+            <div className="space-y-3 pr-2 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">{t("emptyTitle")}</p>
+              <p className="leading-relaxed">{t("emptyBody")}</p>
+              <Link
+                href="/settings/integrations"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+              >
+                {t("emptyIntegrations")}
+              </Link>
+              <p className="text-xs">{t("emptyRealtime")}</p>
+            </div>
+          ) : (
+            <ul className="space-y-1 pr-2">
+              {conversations.map((c) => {
+                const title =
+                  c.leads?.name ?? c.leads?.username ?? "Conversation";
+                return (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(c.id)}
+                      className={cn(
+                        "flex w-full flex-col rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                        selectedId === c.id
+                          ? "border-primary bg-muted"
+                          : "border-transparent hover:bg-muted/60"
+                      )}
+                    >
+                      <span className="font-medium">{title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {c.last_message_at
+                          ? new Date(c.last_message_at).toLocaleString()
+                          : "—"}
+                      </span>
+                      <Badge variant="secondary" className="mt-1 w-fit text-[10px]">
+                        {c.leads?.status ?? "—"}
+                      </Badge>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </ScrollArea>
       </aside>
 
