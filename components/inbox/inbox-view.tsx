@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -70,6 +76,29 @@ export function InboxView({
 
   const selected = conversations.find((c) => c.id === selectedId);
 
+  const refreshConversationList = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("conversations")
+      .select(CONVERSATION_LIST_SELECT)
+      .eq("organization_id", organizationId)
+      .order("last_message_at", { ascending: false, nullsFirst: false });
+    if (error) {
+      console.error("[inbox] conversations load", error.message);
+      return;
+    }
+    if (!data) return;
+    const rows = data as unknown as ConvRow[];
+    setConversations(rows);
+    setSelectedId((prev) => {
+      if (prev && rows.some((c) => c.id === prev)) return prev;
+      return rows[0]?.id ?? null;
+    });
+  }, [organizationId, supabase]);
+
+  useEffect(() => {
+    void refreshConversationList();
+  }, [refreshConversationList]);
+
   useEffect(() => {
     if (!organizationId) return;
     const channel = supabase
@@ -83,30 +112,14 @@ export function InboxView({
           filter: `organization_id=eq.${organizationId}`,
         },
         () => {
-          void (async () => {
-            const { data } = await supabase
-              .from("conversations")
-              .select(CONVERSATION_LIST_SELECT)
-              .eq("organization_id", organizationId)
-              .order("last_message_at", {
-                ascending: false,
-                nullsFirst: false,
-              });
-            if (!data) return;
-            const rows = data as unknown as ConvRow[];
-            setConversations(rows);
-            setSelectedId((prev) => {
-              if (prev && rows.some((c) => c.id === prev)) return prev;
-              return rows[0]?.id ?? null;
-            });
-          })();
+          void refreshConversationList();
         }
       )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [organizationId, supabase]);
+  }, [organizationId, supabase, refreshConversationList]);
 
   useEffect(() => {
     if (!selectedId) return;

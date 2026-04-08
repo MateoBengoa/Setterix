@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrganizationForUser } from "@/lib/org";
 import { InboxView } from "@/components/inbox/inbox-view";
 
+export const dynamic = "force-dynamic";
+
 export default async function InboxPage() {
   await getTranslations("inbox");
   const org = await getOrganizationForUser();

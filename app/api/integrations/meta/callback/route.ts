@@ -177,6 +177,7 @@ export async function GET(request: Request) {
         platform: "instagram" as const,
         meta_user_id: ig.id,
         page_id: pageIdForWebhook,
+        facebook_page_id: p.facebookPageId,
         page_name: display,
         access_token: p.pageAccessToken,
         oauth_provider: "facebook" as const,
