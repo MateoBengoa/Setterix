@@ -1,10 +1,11 @@
 import {
+  envelopeEntries,
   isSafeMetaNumericId,
+  MESSAGE_CHANGE_FIELDS,
   messageMidFromPayload,
   messagingEventsFromEntry,
   parseMetaWebhookPayload,
   webhookAccountId,
-  type WebhookEntry,
 } from "@/lib/meta/meta-webhook-payload";
 
 export type StoredMetaAccountIds = {
@@ -32,7 +33,7 @@ function collectEvents(raw: unknown): AnalyzedMessagingEvent[] {
   const out: AnalyzedMessagingEvent[] = [];
   for (const env of parseMetaWebhookPayload(raw)) {
     const objectType = env.object;
-    for (const entry of (env.entry ?? []) as WebhookEntry[]) {
+    for (const entry of envelopeEntries(env)) {
       const entryId = webhookAccountId(entry.id);
       const events = messagingEventsFromEntry(entry);
       for (const evt of events) {
@@ -75,6 +76,73 @@ function collectEvents(raw: unknown): AnalyzedMessagingEvent[] {
   return out;
 }
 
+function collectPayloadInspectionNotes(raw: unknown, eventCount: number): string[] {
+  if (eventCount > 0) return [];
+
+  const notes: string[] = [];
+
+  for (const env of parseMetaWebhookPayload(raw)) {
+    for (const entry of envelopeEntries(env)) {
+      const changes = entry.changes ?? [];
+      const changeFields = Array.from(
+        new Set(
+          changes
+            .map((c) => (c.field != null ? String(c.field) : ""))
+            .filter(Boolean)
+        )
+      );
+      if (changeFields.length > 0) {
+        notes.push(
+          `This payload has entry.changes fields: ${changeFields.join(", ")}. If messagingEventCount is still 0, Meta may use a nested shape we do not unwrap yet — set META_WEBHOOK_DEBUG=1 on the server and check logs, or paste the same JSON into support.`
+        );
+      }
+
+      const cfRaw = entry.changed_fields;
+      const changedFieldsList = Array.isArray(cfRaw)
+        ? cfRaw.map((x) => String(x).toLowerCase())
+        : [];
+
+      const mentionsMessages = changedFieldsList.some((f) =>
+        Array.from(MESSAGE_CHANGE_FIELDS).some((m) => f === m || f.includes(m))
+      );
+
+      const messageChangeMissingValue = changes.some((c) => {
+        const f = (c.field ?? "").toLowerCase();
+        return MESSAGE_CHANGE_FIELDS.has(f) && c.value == null;
+      });
+
+      if (messageChangeMissingValue) {
+        notes.push(
+          "A messages-related change has no `value` object — in Meta → Webhooks enable including payload values, or copy the raw POST JSON from Recent deliveries (not the short UI preview)."
+        );
+      }
+
+      if (
+        mentionsMessages &&
+        changes.length === 0 &&
+        (entry.messaging?.length ?? 0) === 0
+      ) {
+        notes.push(
+          "entry.changed_fields references messaging but there is no changes[] or messaging[] — enable \"Include values\" for Webhooks or paste the full delivery body."
+        );
+      }
+
+      const hasPayloadArrays =
+        changes.length > 0 ||
+        (entry.messaging?.length ?? 0) > 0 ||
+        (entry.standby?.length ?? 0) > 0;
+
+      if (!hasPayloadArrays && webhookAccountId(entry.id)) {
+        notes.push(
+          "Only entry id/time (no changes/messaging) — that is not a DM body. Open Meta → Webhooks → Recent deliveries → open the POST → copy the full Request body after a real DM (or use Test with full sample)."
+        );
+      }
+    }
+  }
+
+  return Array.from(new Set(notes));
+}
+
 function accountIdSet(a: StoredMetaAccountIds): Set<string> {
   const s = new Set<string>();
   for (const v of [a.page_id, a.meta_user_id, a.facebook_page_id]) {
@@ -107,9 +175,12 @@ export function analyzeMetaWebhookAgainstAccounts(
   }
   if (events.length === 0 && envelopes.length > 0) {
     notes.push(
-      "Envelopes present but no processable message events — check entry.changes (field messages) or entry.messaging; comments/mentions use a different shape."
+      "Envelopes present but no processable inbound DM events — comments/mentions/read receipts use other shapes."
     );
   }
+
+  const inspection = collectPayloadInspectionNotes(raw, events.length);
+  const allNotes = Array.from(new Set([...notes, ...inspection]));
 
   const accountMatches: {
     accountId: string;
@@ -152,7 +223,7 @@ export function analyzeMetaWebhookAgainstAccounts(
   if (
     accounts.some((a) => a.page_id && !isSafeMetaNumericId(String(a.page_id)))
   ) {
-    notes.push("A stored page_id is not a plain numeric string — lookup may fail.");
+    allNotes.push("A stored page_id is not a plain numeric string — lookup may fail.");
   }
 
   return {
@@ -161,6 +232,6 @@ export function analyzeMetaWebhookAgainstAccounts(
     events,
     accountMatches,
     unmatchedEvents,
-    notes,
+    notes: Array.from(new Set(allNotes)),
   };
 }

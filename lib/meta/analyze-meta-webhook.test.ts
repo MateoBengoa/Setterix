@@ -75,6 +75,26 @@ describe("analyzeMetaWebhookAgainstAccounts", () => {
     expect(r.unmatchedEvents.length).toBeGreaterThan(0);
   });
 
+  it("adds inspection notes for metadata-only entry", () => {
+    const metaOnly = {
+      object: "instagram",
+      entry: [{ id: "27389733270613577", time: 1234567890 }],
+    };
+    const r = analyzeMetaWebhookAgainstAccounts(metaOnly, [
+      {
+        id: "acc",
+        page_id: "27389733270613577",
+        meta_user_id: "27389733270613577",
+      },
+    ]);
+    expect(r.messagingEventCount).toBe(0);
+    expect(
+      r.notes.some((n) =>
+        n.toLowerCase().includes("only entry id/time")
+      )
+    ).toBe(true);
+  });
+
   it("matches Instagram Platform payload with entry.changes (not messaging[])", () => {
     const igChangesPayload = {
       object: "instagram",

@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     })),
     interpretation:
       analysis.messagingEventCount === 0
-        ? "No processable messaging events — Setterix will log 'no envelopes' or skip."
+        ? "No DM-shaped events in this paste — read `notes`: you may have copied only entry id/time, or Meta omitted change values (enable Include values / full POST body from Recent deliveries)."
         : analysis.accountMatches.length === 0
           ? "No connected account shares entry.id/recipient.id with this payload — real DMs would be dropped (see logs: no meta_accounts row for ids)."
           : "At least one account matches — inbound DMs with text/mid would create or update a conversation.",

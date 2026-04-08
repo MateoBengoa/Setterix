@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  envelopeEntries,
+  eventsFromChangeValue,
   isSafeMetaNumericId,
   messageMidFromPayload,
   messagingEventsFromEntry,
@@ -46,6 +48,33 @@ describe("isSafeMetaNumericId", () => {
     expect(isSafeMetaNumericId("1234")).toBe(false);
     expect(isSafeMetaNumericId("12a34")).toBe(false);
     expect(isSafeMetaNumericId("")).toBe(false);
+  });
+});
+
+describe("envelopeEntries", () => {
+  it("normalizes a single entry object into an array", () => {
+    const env = {
+      object: "instagram",
+      entry: { id: "1", messaging: [] },
+    };
+    expect(envelopeEntries(env)).toHaveLength(1);
+    expect(envelopeEntries(env)[0].id).toBe("1");
+  });
+});
+
+describe("eventsFromChangeValue", () => {
+  it("unwraps value.messages[]", () => {
+    const ev = eventsFromChangeValue({
+      messages: [
+        {
+          sender: { id: "1" },
+          recipient: { id: "2" },
+          message: { mid: "x", text: "hi" },
+        },
+      ],
+    });
+    expect(ev).toHaveLength(1);
+    expect(ev[0].message?.text).toBe("hi");
   });
 });
 

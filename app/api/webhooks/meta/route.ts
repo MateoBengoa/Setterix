@@ -4,6 +4,7 @@ import { incrementAnalytics } from "@/lib/analytics/attribution";
 import { generateAgentReply } from "@/lib/ai/agent";
 import { findMetaAccountByWebhookIds } from "@/lib/meta/find-meta-account-webhook";
 import {
+  envelopeEntries,
   messageMidFromPayload,
   messagingEventsFromEntry,
   parseMetaWebhookPayload,
@@ -259,7 +260,7 @@ export async function POST(req: Request) {
       JSON.stringify(
         envelopes.map((e) => ({
           object: e.object,
-          entryCount: e.entry?.length ?? 0,
+          entryCount: envelopeEntries(e).length,
         }))
       )
     );
@@ -267,7 +268,7 @@ export async function POST(req: Request) {
 
   for (const env of envelopes) {
     const objectType = env.object;
-    for (const entry of (env.entry ?? []) as WebhookEntry[]) {
+    for (const entry of envelopeEntries(env)) {
       const changeFields = (entry.changes ?? [])
         .map((c) => c.field)
         .filter(Boolean);
