@@ -12,9 +12,35 @@ import {
 } from "@/lib/meta/meta-webhook-payload";
 
 export const dynamic = "force-dynamic";
+/** Ensure Node runtime so stdout appears in Vercel Runtime Logs (not Edge). */
+export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
+
+  if (url.searchParams.get("health") === "1") {
+    console.info("[meta-webhook] GET health check");
+    return NextResponse.json({
+      ok: true,
+      route: "/api/webhooks/meta",
+      verifyTokenConfigured: Boolean(
+        process.env.META_WEBHOOK_VERIFY_TOKEN?.trim()
+      ),
+      serviceRoleConfigured: (() => {
+        try {
+          return Boolean(
+            process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+              process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+          );
+        } catch {
+          return false;
+        }
+      })(),
+      ts: new Date().toISOString(),
+      hint: "If you see this JSON, the route is deployed. Meta uses POST, not this URL.",
+    });
+  }
+
   const mode = url.searchParams.get("hub.mode");
   const token = url.searchParams.get("hub.verify_token");
   const challenge = url.searchParams.get("hub.challenge");
@@ -23,6 +49,7 @@ export async function GET(req: Request) {
     token === process.env.META_WEBHOOK_VERIFY_TOKEN &&
     challenge
   ) {
+    console.info("[meta-webhook] GET subscribe verify OK");
     return new NextResponse(challenge, { status: 200 });
   }
   return NextResponse.json({ error: "forbidden" }, { status: 403 });
@@ -184,6 +211,9 @@ async function processMessagingEvent(
 }
 
 export async function POST(req: Request) {
+  // stderr + prefix: easier to spot in Vercel → project → Logs (Production)
+  console.error("[meta-webhook] POST received", new Date().toISOString());
+
   let supabase: ReturnType<typeof createAdminClient>;
   try {
     supabase = createAdminClient();
@@ -195,7 +225,11 @@ export async function POST(req: Request) {
   let raw: unknown;
   try {
     raw = await req.json();
-  } catch {
+  } catch (parseErr) {
+    console.warn(
+      "[meta-webhook] invalid JSON body",
+      String(parseErr)
+    );
     return NextResponse.json({ ok: true });
   }
 
@@ -211,6 +245,24 @@ export async function POST(req: Request) {
   }
 
   const envelopes = parseMetaWebhookPayload(raw);
+  if (envelopes.length === 0) {
+    console.warn(
+      "[meta-webhook] no envelopes; raw preview:",
+      typeof raw === "object" && raw !== null
+        ? JSON.stringify(raw).slice(0, 800)
+        : String(raw).slice(0, 200)
+    );
+  } else {
+    console.info(
+      "[meta-webhook] envelopes:",
+      JSON.stringify(
+        envelopes.map((e) => ({
+          object: e.object,
+          entryCount: e.entry?.length ?? 0,
+        }))
+      )
+    );
+  }
 
   for (const env of envelopes) {
     const objectType = env.object;

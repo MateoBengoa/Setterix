@@ -45,25 +45,66 @@ export async function GET() {
     .select("id", { count: "exact", head: true })
     .eq("organization_id", orgId);
 
+  const healthUrl = webhookUrl ? `${webhookUrl}?health=1` : null;
+  const igPageId = accounts?.[0]?.page_id?.trim();
+  const testMid = `setterix-manual-${Date.now()}`;
+  const copyPastePostTest =
+    webhookUrl && igPageId
+      ? {
+          url: webhookUrl,
+          method: "POST" as const,
+          headers: { "Content-Type": "application/json" },
+          body: {
+            object: "instagram",
+            entry: [
+              {
+                id: igPageId,
+                messaging: [
+                  {
+                    sender: { id: "1000000000000001" },
+                    recipient: { id: igPageId },
+                    message: {
+                      mid: testMid,
+                      text: "Manual test — safe to delete this thread in app",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          note: "Send this from Postman or curl. You should see [meta-webhook] POST in Vercel Logs and conversationCount should increase. Change message.mid if you run twice.",
+        }
+      : null;
+
   return NextResponse.json({
     serviceRoleConfigured,
     webhookCallbackUrl: webhookUrl || null,
+    healthUrl,
     verifyTokenConfigured: Boolean(
       process.env.META_WEBHOOK_VERIFY_TOKEN?.trim()
     ),
     metaAccounts: accounts ?? [],
     metaAccountsLoadError: accErr?.message ?? null,
     conversationCount: conversationCount ?? 0,
+    copyPastePostTest,
+    whereToSeeVercelLogs:
+      "Vercel dashboard → your project → Logs tab (select Production). Or: Deployments → latest → Functions. Search filter: meta-webhook. If still empty, Meta is not POSTing to your URL.",
+    metaSubscribeHint:
+      "In developers.facebook.com: App → Instagram → API setup with Instagram login (or Webhooks) → subscribe to messaging/messages for your Instagram account. Page-only webhooks use a different object id — reconnect with Facebook OAuth if needed.",
     hints: [
       !serviceRoleConfigured &&
         "Set SUPABASE_SERVICE_ROLE_KEY on Vercel — webhooks cannot write to the DB without it.",
       !webhookUrl && "Set NEXT_PUBLIC_APP_URL so the webhook URL is known.",
       !(accounts?.length) &&
         "No meta_accounts rows — connect Instagram in Settings → Integrations.",
+      healthUrl &&
+        "Open healthUrl in a browser — you should see JSON and a [meta-webhook] GET line in Logs.",
+      copyPastePostTest &&
+        "If Meta shows no deliveries: use copyPastePostTest to prove POST logging and DB writes work.",
       serviceRoleConfigured &&
         (accounts?.length ?? 0) > 0 &&
         (conversationCount ?? 0) === 0 &&
-        "Meta may not be POSTing yet: in Meta App → Webhooks, send a test or DM your IG from another account; check Vercel logs for [meta-webhook].",
+        "Zero conversations + zero [meta-webhook] POST logs usually means Meta never calls your callback — fix subscription product/fields in Meta, or URL mismatch (www vs non-www).",
     ].filter(Boolean),
   });
 }
