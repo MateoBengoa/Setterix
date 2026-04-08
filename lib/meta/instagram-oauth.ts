@@ -15,13 +15,23 @@ function instagramOAuthClientSecret(): string {
   return v || process.env.META_APP_SECRET || "";
 }
 
-const IG_AUTHORIZE = "https://api.instagram.com/oauth/authorize";
+/** Misma URL que muestra el panel de Meta (“URL de inserción”). */
+const IG_AUTHORIZE = "https://www.instagram.com/oauth/authorize";
 const IG_ACCESS_TOKEN = "https://api.instagram.com/oauth/access_token";
 
+/** Scopes por defecto alineados con la URL de inserción de Instagram Business Login. */
 export const INSTAGRAM_NATIVE_OAUTH_SCOPES = [
   "instagram_business_basic",
   "instagram_business_manage_messages",
+  "instagram_business_manage_comments",
+  "instagram_business_content_publish",
+  "instagram_business_manage_insights",
 ].join(",");
+
+function instagramOAuthScopes(): string {
+  const fromEnv = process.env.META_INSTAGRAM_OAUTH_SCOPES?.trim();
+  return fromEnv || INSTAGRAM_NATIVE_OAUTH_SCOPES;
+}
 
 export function buildInstagramAuthorizeUrl(params: {
   clientId: string;
@@ -29,10 +39,11 @@ export function buildInstagramAuthorizeUrl(params: {
   state: string;
 }): string {
   const u = new URL(IG_AUTHORIZE);
+  u.searchParams.set("force_reauth", "true");
   u.searchParams.set("client_id", params.clientId);
   u.searchParams.set("redirect_uri", params.redirectUri);
-  u.searchParams.set("scope", INSTAGRAM_NATIVE_OAUTH_SCOPES);
   u.searchParams.set("response_type", "code");
+  u.searchParams.set("scope", instagramOAuthScopes());
   u.searchParams.set("state", params.state);
   return u.toString();
 }

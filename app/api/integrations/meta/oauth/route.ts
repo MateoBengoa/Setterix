@@ -147,7 +147,7 @@ export async function GET(request: Request) {
 
   cookieStore.set(COOKIE_FLOW, FLOW_IG_NATIVE, cookieOpts);
   const authUrl = buildInstagramAuthorizeUrl({
-    clientId: appId,
+    clientId: instagramOAuthClientId(appId),
     redirectUri,
     state,
   });
