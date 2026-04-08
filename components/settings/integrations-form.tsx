@@ -53,6 +53,12 @@ export function IntegrationsForm({
     );
   }
 
+  function startInstagramLoginPageOAuth() {
+    window.location.assign(
+      `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}&flow=instagram&entry=loginpage`
+    );
+  }
+
   async function addAccount() {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -102,6 +108,14 @@ export function IntegrationsForm({
             onClick={startFacebookOAuth}
           >
             {t("connectViaFacebookLink")}
+          </button>
+          {" · "}
+          <button
+            type="button"
+            className="text-primary underline-offset-4 hover:underline"
+            onClick={startInstagramLoginPageOAuth}
+          >
+            {t("connectViaInstagramLoginPageLink")}
           </button>
         </p>
       </div>

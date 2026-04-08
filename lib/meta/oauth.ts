@@ -39,9 +39,30 @@ export function buildMetaAuthorizeUrl(params: {
 }
 
 /**
- * ManyChat-style flow: Meta Business login page with "Log in with Instagram",
- * then dialog/oauth with config_id (Facebook Login for Business).
+ * Facebook Login for Business with config_id — single redirect, no business/loginpage.
+ * Avoids the Instagram OIDC path that often hits /dialog/oauth/account_switch and shows
+ * "Sorry, this content isn't available" on localhost or some accounts.
  * @see https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business
+ */
+export function buildLoginForBusinessDirectUrl(params: {
+  clientId: string;
+  configId: string;
+  redirectUri: string;
+  state: string;
+}): string {
+  const u = new URL(`${DIALOG}/dialog/oauth`);
+  u.searchParams.set("client_id", params.clientId);
+  u.searchParams.set("config_id", params.configId);
+  u.searchParams.set("redirect_uri", params.redirectUri);
+  u.searchParams.set("response_type", "code");
+  u.searchParams.set("override_default_response_type", "1");
+  u.searchParams.set("state", params.state);
+  return u.toString();
+}
+
+/**
+ * ManyChat-style: business/loginpage with "Log in with Instagram" first.
+ * Can fail with account_switch on http://localhost — prefer direct flow for dev.
  */
 export function buildMetaBusinessLoginPageUrl(params: {
   appId: string;
@@ -65,7 +86,6 @@ export function buildMetaBusinessLoginPageUrl(params: {
   page.searchParams.set("display", "page");
   page.searchParams.set("full_page_redirect_experimental", "1");
   page.searchParams.set("show_back_button", "0");
-  page.searchParams.set("cma_account_switch", "1");
   return page.toString();
 }
 

@@ -67,8 +67,9 @@
     "billingTitle": "Billing",
     "integrations": {
       "connectInstagram": "Link Instagram Business",
-      "oauthBlurb": "Opens Meta’s business login page so you can choose “Log in with Instagram” (same pattern as ManyChat). Requires Facebook Login for Business: create a configuration in the Meta app dashboard and set META_BUSINESS_LOGIN_CONFIG_ID in your env. We store the Facebook Page access token for your linked Instagram.",
-      "connectViaFacebookLink": "Use classic Facebook login (scopes, no config ID)",
+      "oauthBlurb": "Uses Facebook Login for Business with your configuration ID (direct OAuth dialog). On localhost this avoids Meta’s account-switch step that often shows “content isn’t available”. For production HTTPS you can try the Instagram-first screen from the second link.",
+      "connectViaFacebookLink": "Classic Facebook login (scopes, no config ID)",
+      "connectViaInstagramLoginPageLink": "Instagram-first screen (ManyChat-style, may fail on localhost)",
       "errorMissingBusinessConfig": "Set META_BUSINESS_LOGIN_CONFIG_ID in Vercel: Meta App → Facebook Login for Business → Configurations → copy the configuration ID. Add your redirect URL there and under Facebook Login settings.",
       "manualSection": "Manual token (advanced / dev)",
       "oauthConnected": "Connected {count} Instagram account(s).",

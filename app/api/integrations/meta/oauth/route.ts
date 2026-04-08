@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import {
+  buildLoginForBusinessDirectUrl,
   buildMetaAuthorizeUrl,
   buildMetaBusinessLoginPageUrl,
   getMetaOAuthRedirectUri,
@@ -83,12 +84,32 @@ export async function GET(request: Request) {
     );
   }
 
-  const authUrl = buildMetaBusinessLoginPageUrl({
-    appId,
-    configId,
-    redirectUri,
-    state,
-  });
+  const entryParam = reqUrl.searchParams.get("entry");
+  const entryEnv = process.env.META_BUSINESS_LOGIN_ENTRY?.trim().toLowerCase();
+  const explicitLoginPage =
+    entryParam === "loginpage" || entryParam === "instagram";
+  const envWantsLoginPage =
+    entryEnv === "loginpage" || entryEnv === "instagram";
+  const isLocalHttp = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i.test(
+    redirectUri
+  );
+  // business/loginpage → account_switch often breaks on http://localhost
+  const useLoginPage =
+    explicitLoginPage || (envWantsLoginPage && !isLocalHttp);
+
+  const authUrl = useLoginPage
+    ? buildMetaBusinessLoginPageUrl({
+        appId,
+        configId,
+        redirectUri,
+        state,
+      })
+    : buildLoginForBusinessDirectUrl({
+        clientId: appId,
+        configId,
+        redirectUri,
+        state,
+      });
 
   return NextResponse.redirect(authUrl);
 }
