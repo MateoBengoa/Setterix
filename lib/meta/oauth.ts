@@ -2,17 +2,16 @@ const GRAPH = "https://graph.facebook.com/v21.0";
 const DIALOG = "https://www.facebook.com/v21.0";
 
 /**
- * Scopes for Facebook Login + Instagram Professional (Messaging).
- * Legacy names (instagram_basic, instagram_manage_messages, pages_read_engagement)
- * are rejected by the Login dialog as of 2025 — use instagram_business_* instead.
- * @see https://developers.facebook.com/docs/permissions/reference
+ * Scopes for www.facebook.com/dialog/oauth (classic Facebook Login).
+ * instagram_business_* is NOT valid on this dialog — Meta ignores/rejects it.
+ * Instagram DMs for a Page use the Messenger Platform with a Page token; pages_messaging + pages_show_list + pages_manage_metadata is the usual set.
+ * @see https://developers.facebook.com/docs/facebook-login/permissions
+ * @see https://developers.facebook.com/docs/messenger-platform/instagram
  */
 export const META_OAUTH_SCOPES = [
   "pages_show_list",
   "pages_manage_metadata",
   "pages_messaging",
-  "instagram_business_basic",
-  "instagram_business_manage_messages",
   "business_management",
 ].join(",");
 
