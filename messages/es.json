@@ -89,6 +89,29 @@
       "prodTokensNote": "Producción: guarda los tokens de Meta con Supabase Vault — nunca en texto plano."
     }
   },
+  "privacy": {
+    "metaTitle": "Política de privacidad",
+    "metaDescription": "Cómo recopilamos, usamos y protegemos los datos personales cuando usas nuestro servicio de automatización de mensajes de Instagram y Facebook.",
+    "title": "Política de privacidad",
+    "updated": "Última actualización: 7 de abril de 2026",
+    "backHome": "Volver al inicio",
+    "s1Title": "1. Responsable del tratamiento",
+    "s1Body": "Esta Política de privacidad describe cómo {appName} (\"nosotros\") trata los datos personales cuando usas nuestro software (el \"Servicio\") para gestionar mensajes directos de Instagram y Facebook, automatización y flujos comerciales relacionados. {appName} se ofrece en relación con el sitio y la aplicación donde se publica esta política.",
+    "s2Title": "2. Datos que recopilamos",
+    "s2Body": "Cuenta e identidad: datos que nos facilitas al registrarte o iniciar sesión (por ejemplo, correo electrónico y datos de autenticación de tu proveedor de identidad).\n\nServicio e integraciones: al conectar Meta (Instagram/Facebook), recibimos y almacenamos tokens e identificadores necesarios para mensajería, webhooks y llamadas a la API en tu nombre, según tu conexión y las condiciones de Meta.\n\nMensajería y CRM: contenido y metadatos de conversaciones, leads, campañas, reservas y ajustes que configures en el Servicio, en la medida necesaria para prestar el producto.\n\nDatos técnicos: registros, diagnósticos e información de seguridad (por ejemplo, dirección IP, tipo de dispositivo/navegador, marcas de tiempo) para operar, asegurar y mejorar el Servicio.",
+    "s3Title": "3. Finalidades del tratamiento",
+    "s3Body": "Usamos los datos personales para prestar y mantener el Servicio; autenticar usuarios; gestionar integraciones con Meta y otras herramientas que actives; operar automatización y funciones asistidas por IA que configures; analizar el uso de forma agregada para mejorar fiabilidad y rendimiento; cumplir la ley; y hacer cumplir nuestras condiciones y proteger a los usuarios.",
+    "s4Title": "4. IA y tratamiento automatizado",
+    "s4Body": "Cuando esté activado, el Servicio puede usar sistemas automatizados (incluidos modelos de lenguaje) para sugerir respuestas o clasificar conversaciones según el contenido que recibas por los canales conectados. Sigues siendo responsable del uso de la mensajería automatizada y del cumplimiento de las Condiciones de la plataforma de Meta, sus políticas publicitarias y la legislación aplicable (incluidos consentimiento y transparencia cuando proceda).",
+    "s5Title": "5. Meta / Instagram / Facebook",
+    "s5Body": "Al conectar Instagram o Facebook, tu uso de los productos de Meta también se rige por sus términos y políticas. Accedemos y tratamos datos mediante las APIs de Meta solo según tu autorización y lo permitido por Meta. No controlamos el tratamiento que Meta realiza en sus propias plataformas; revisa la información de privacidad de Meta al respecto.",
+    "s6Title": "6. Encargados y transferencias",
+    "s6Body": "Utilizamos proveedores de infraestructura y servicios de confianza para alojar y operar el Servicio (por ejemplo, alojamiento en la nube, base de datos y autenticación, correo, analítica y pagos). Pueden tratar datos en países distintos al tuyo. Aplicamos medidas contractuales y técnicas acordes al riesgo para proteger los datos personales.",
+    "s7Title": "7. Conservación y seguridad",
+    "s7Body": "Conservamos los datos personales el tiempo necesario para prestar el Servicio, cumplir obligaciones legales, resolver disputas y hacer valer acuerdos. Aplicamos medidas técnicas y organizativas para proteger los datos frente a accesos no autorizados, pérdida o alteración. Ningún método de transmisión o almacenamiento es totalmente seguro.",
+    "s8Title": "8. Tus derechos y contacto",
+    "s8Body": "Según tu ubicación, puedes tener derechos de acceso, rectificación, supresión o portabilidad, u oposición o limitación de ciertos tratamientos. Para ejercer derechos o preguntar por esta política, contáctanos por el medio indicado en el Servicio o en nuestro sitio. Si actuamos como encargado en nombre de tu organización, tu administrador puede ser el contacto adecuado para algunas solicitudes."
+  },
   "onboarding": {
     "meta": "Conectar Meta",
     "agent": "Configurar agente",

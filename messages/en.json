@@ -89,6 +89,29 @@
       "prodTokensNote": "Production: store Meta tokens with Supabase Vault — never commit plaintext."
     }
   },
+  "privacy": {
+    "metaTitle": "Privacy Policy",
+    "metaDescription": "How we collect, use, and protect personal data when you use our Instagram and Facebook messaging automation service.",
+    "title": "Privacy Policy",
+    "updated": "Last updated: April 7, 2026",
+    "backHome": "Back to home",
+    "s1Title": "1. Who we are",
+    "s1Body": "This Privacy Policy describes how {appName} (\"we\", \"us\") processes personal data when you use our software service (the \"Service\") that helps businesses manage Instagram and Facebook direct messages, automation, and related sales workflows. {appName} is operated in connection with the website and application where this policy is published.",
+    "s2Title": "2. Data we collect",
+    "s2Body": "Account and identity: information you provide when you register or sign in (for example, email address and authentication data from your identity provider).\n\nService and integration data: when you connect Meta (Instagram/Facebook), we receive and store tokens and identifiers needed to operate messaging features, webhooks, and API calls on your behalf, as permitted by your connection and Meta's terms.\n\nMessaging and CRM data: content and metadata from conversations, leads, campaigns, bookings, and settings you configure in the Service, to the extent needed to provide the product.\n\nTechnical data: logs, diagnostics, and security information (for example, IP address, device/browser type, timestamps) to run, secure, and improve the Service.",
+    "s3Title": "3. How we use data",
+    "s3Body": "We use personal data to provide and maintain the Service; authenticate users; process integrations with Meta and other third-party tools you enable; operate automation and AI-assisted features you configure; analyze usage in aggregate to improve reliability and performance; comply with law; and enforce our terms and protect users.",
+    "s4Title": "4. AI and automated processing",
+    "s4Body": "Where enabled, the Service may use automated systems (including large language models) to generate suggested replies or classify conversations based on content you receive through connected channels. You remain responsible for your use of automated messaging and for complying with Meta's Platform Terms, advertising policies, and applicable laws (including consent and transparency requirements where they apply).",
+    "s5Title": "5. Meta / Instagram / Facebook",
+    "s5Body": "When you connect Instagram or Facebook, your use of Meta products is also governed by Meta's terms and policies. We access and process data through Meta's APIs only as authorized by you and as permitted by Meta. We do not control Meta's own processing; please review Meta's privacy materials for how Meta handles data on its platforms.",
+    "s6Title": "6. Subprocessors and transfers",
+    "s6Body": "We use trusted infrastructure and service providers to host and operate the Service (for example, cloud hosting, database and authentication, email, analytics, and payment processing). Providers may process data in countries other than your own. We take steps designed to protect personal data through contractual and technical safeguards appropriate to the risk.",
+    "s7Title": "7. Retention and security",
+    "s7Body": "We retain personal data for as long as needed to provide the Service, meet legal obligations, resolve disputes, and enforce agreements. We implement technical and organizational measures intended to protect data against unauthorized access, loss, or alteration. No method of transmission or storage is completely secure.",
+    "s8Title": "8. Your rights and contact",
+    "s8Body": "Depending on your location, you may have rights to access, correct, delete, or export certain personal data, or to object to or restrict certain processing. To exercise rights or ask questions about this policy, contact us using the contact method shown in the Service or on our website. If we act as a processor on behalf of your organization, your administrator may be the right contact for some requests."
+  },
   "onboarding": {
     "meta": "Connect Meta",
     "agent": "Configure agent",
