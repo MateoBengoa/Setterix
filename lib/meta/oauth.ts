@@ -38,6 +38,37 @@ export function buildMetaAuthorizeUrl(params: {
   return u.toString();
 }
 
+/**
+ * ManyChat-style flow: Meta Business login page with "Log in with Instagram",
+ * then dialog/oauth with config_id (Facebook Login for Business).
+ * @see https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business
+ */
+export function buildMetaBusinessLoginPageUrl(params: {
+  appId: string;
+  configId: string;
+  redirectUri: string;
+  state: string;
+}): string {
+  const dialog = new URL("https://business.facebook.com/dialog/oauth");
+  dialog.searchParams.set("client_id", params.appId);
+  dialog.searchParams.set("config_id", params.configId);
+  dialog.searchParams.set("redirect_uri", params.redirectUri);
+  dialog.searchParams.set("response_type", "code");
+  dialog.searchParams.set("override_default_response_type", "1");
+  dialog.searchParams.set("state", params.state);
+
+  const page = new URL("https://business.facebook.com/business/loginpage/");
+  page.searchParams.set("next", dialog.toString());
+  page.searchParams.set("login_options[0]", "IG");
+  page.searchParams.set("app", params.appId);
+  page.searchParams.set("is_ig_oidc_with_redirect", "1");
+  page.searchParams.set("display", "page");
+  page.searchParams.set("full_page_redirect_experimental", "1");
+  page.searchParams.set("show_back_button", "0");
+  page.searchParams.set("cma_account_switch", "1");
+  return page.toString();
+}
+
 export async function exchangeCodeForShortLivedUserToken(
   code: string,
   redirectUri: string

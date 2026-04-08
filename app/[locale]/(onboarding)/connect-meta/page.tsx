@@ -8,10 +8,11 @@ import { cn } from "@/lib/utils";
 export default async function ConnectMetaPage() {
   const t = await getTranslations("onboarding");
   const tCommon = await getTranslations("common");
+  const tNav = await getTranslations("nav");
   const tIntegrations = await getTranslations("settings.integrations");
   const locale = await getLocale();
   const org = await getOrganizationForUser();
-  const oauthHref = `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}`;
+  const oauthHref = `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}&flow=instagram`;
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-8 px-4 py-12">
@@ -25,8 +26,7 @@ export default async function ConnectMetaPage() {
       <div>
         <h1 className="text-2xl font-semibold">{t("meta")}</h1>
         <p className="mt-2 text-muted-foreground">
-          {tIntegrations("oauthBlurb")} You can also add a manual token under
-          Settings → Integrations if needed.
+          {tIntegrations("oauthBlurb")} {t("connectMetaManualSuffix")}
         </p>
       </div>
       {!org ? (
@@ -37,11 +37,11 @@ export default async function ConnectMetaPage() {
             {tIntegrations("connectInstagram")}
           </a>
           <p className="text-sm text-muted-foreground">
-            Or open{" "}
+            {t("connectMetaOrOpen")}{" "}
             <Link href="/settings/integrations" className="text-primary underline-offset-4 hover:underline">
-              Integrations
+              {tNav("integrations")}
             </Link>{" "}
-            in settings.
+            {t("connectMetaInSettings")}
           </p>
         </div>
       )}

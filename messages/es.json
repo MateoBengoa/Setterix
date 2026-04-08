@@ -66,8 +66,10 @@
     "teamTitle": "Equipo",
     "billingTitle": "Facturación",
     "integrations": {
-      "connectInstagram": "Conectar con Instagram",
-      "oauthBlurb": "Inicia sesión con Meta para vincular cuentas de Instagram Business conectadas a tus páginas de Facebook. Guardamos el token de la página para enviar mensajes.",
+      "connectInstagram": "Vincular Instagram Business",
+      "oauthBlurb": "Abre la página de inicio de empresas de Meta para elegir «Iniciar sesión con Instagram» (como ManyChat). Necesitas Facebook Login for Business: crea una configuración en el panel de la app y pon META_BUSINESS_LOGIN_CONFIG_ID en las variables de entorno. Guardamos el token de la página de Facebook vinculada a tu Instagram.",
+      "connectViaFacebookLink": "Usar login clásico de Facebook (permisos, sin config ID)",
+      "errorMissingBusinessConfig": "Configura META_BUSINESS_LOGIN_CONFIG_ID en Vercel: App Meta → Facebook Login for Business → Configuraciones → copia el ID de configuración. Añade ahí y en Facebook Login la URL de redirección.",
       "manualSection": "Token manual (avanzado / desarrollo)",
       "oauthConnected": "Se conectaron {count} cuenta(s) de Instagram.",
       "errorInvalidState": "La sesión de OAuth expiró. Vuelve a intentar la conexión.",
@@ -84,6 +86,9 @@
     "meta": "Conectar Meta",
     "agent": "Configurar agente",
     "calendar": "Conectar calendario",
-    "step": "Paso {n}"
+    "step": "Paso {n}",
+    "connectMetaManualSuffix": "También puedes añadir un token manual en Ajustes → Integraciones si lo necesitas.",
+    "connectMetaOrOpen": "O abre",
+    "connectMetaInSettings": "en ajustes."
   }
 }

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import {
   buildMetaAuthorizeUrl,
+  buildMetaBusinessLoginPageUrl,
   getMetaOAuthRedirectUri,
 } from "@/lib/meta/oauth";
 import { randomBytes } from "node:crypto";
@@ -12,6 +13,8 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const reqUrl = new URL(request.url);
   const locale = reqUrl.searchParams.get("locale") ?? "en";
+  const flow = reqUrl.searchParams.get("flow") ?? "instagram";
+  const useFacebookLogin = flow === "facebook";
 
   const appId = process.env.META_APP_ID;
   const appSecret = process.env.META_APP_SECRET;
@@ -21,8 +24,9 @@ export async function GET(request: Request) {
     });
   }
 
+  let redirectUri: string;
   try {
-    getMetaOAuthRedirectUri();
+    redirectUri = getMetaOAuthRedirectUri();
   } catch {
     return new NextResponse("NEXT_PUBLIC_APP_URL is required", { status: 500 });
   }
@@ -62,9 +66,27 @@ export async function GET(request: Request) {
     maxAge: 600,
   });
 
-  const authUrl = buildMetaAuthorizeUrl({
-    clientId: appId,
-    redirectUri: getMetaOAuthRedirectUri(),
+  if (useFacebookLogin) {
+    const authUrl = buildMetaAuthorizeUrl({
+      clientId: appId,
+      redirectUri,
+      state,
+    });
+    return NextResponse.redirect(authUrl);
+  }
+
+  const configId = process.env.META_BUSINESS_LOGIN_CONFIG_ID?.trim();
+  if (!configId) {
+    const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? reqUrl.origin;
+    return NextResponse.redirect(
+      `${base}/${locale}/settings/integrations?error=missing_business_config`
+    );
+  }
+
+  const authUrl = buildMetaBusinessLoginPageUrl({
+    appId,
+    configId,
+    redirectUri,
     state,
   });
 

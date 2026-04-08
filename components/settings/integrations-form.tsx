@@ -41,9 +41,15 @@ export function IntegrationsForm({
   const [pageName, setPageName] = useState("");
   const [token, setToken] = useState("");
 
-  function startMetaOAuth() {
+  function startInstagramOAuth() {
     window.location.assign(
-      `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}`
+      `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}&flow=instagram`
+    );
+  }
+
+  function startFacebookOAuth() {
+    window.location.assign(
+      `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}&flow=facebook`
     );
   }
 
@@ -86,9 +92,18 @@ export function IntegrationsForm({
       <div className="space-y-4 rounded-xl border border-border bg-card p-4">
         <h2 className="font-medium">{t("connectInstagram")}</h2>
         <p className="text-sm text-muted-foreground">{t("oauthBlurb")}</p>
-        <Button type="button" className="w-full sm:w-auto" onClick={startMetaOAuth}>
+        <Button type="button" className="w-full sm:w-auto" onClick={startInstagramOAuth}>
           {t("connectInstagram")}
         </Button>
+        <p className="text-sm text-muted-foreground">
+          <button
+            type="button"
+            className="text-primary underline-offset-4 hover:underline"
+            onClick={startFacebookOAuth}
+          >
+            {t("connectViaFacebookLink")}
+          </button>
+        </p>
       </div>
 
       <div className="space-y-4 rounded-xl border border-border bg-card p-4">

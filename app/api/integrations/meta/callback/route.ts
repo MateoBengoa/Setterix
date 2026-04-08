@@ -102,6 +102,7 @@ export async function GET(request: Request) {
         page_id: pageIdForWebhook,
         page_name: display,
         access_token: p.pageAccessToken,
+        oauth_provider: "facebook" as const,
         is_active: true,
       };
 

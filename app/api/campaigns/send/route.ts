@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
   const { data: metaAcc } = await admin
     .from("meta_accounts")
-    .select("platform, access_token")
+    .select("platform, access_token, page_id, oauth_provider")
     .eq("organization_id", orgId)
     .eq("is_active", true)
     .limit(1)
@@ -66,7 +66,13 @@ export async function POST(req: Request) {
       .replace(/\{\{business\}\}/gi, "");
     const r =
       metaAcc.platform === "instagram"
-        ? await sendInstagramMessage(metaAcc.access_token, rid, msg)
+        ? await sendInstagramMessage(
+            metaAcc.access_token,
+            metaAcc.page_id,
+            rid,
+            msg,
+            metaAcc.oauth_provider
+          )
         : await sendMessengerMessage(metaAcc.access_token, rid, msg);
     if (!r.error) sent += 1;
   }

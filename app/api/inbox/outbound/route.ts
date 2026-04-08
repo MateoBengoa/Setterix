@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
   const { data: metaAcc } = await admin
     .from("meta_accounts")
-    .select("platform, access_token")
+    .select("platform, access_token, page_id, oauth_provider")
     .eq("organization_id", orgId)
     .eq("is_active", true)
     .limit(1)
@@ -76,7 +76,13 @@ export async function POST(req: Request) {
   if (metaAcc?.access_token && lead?.meta_user_id) {
     const send =
       metaAcc.platform === "instagram"
-        ? sendInstagramMessage(metaAcc.access_token, lead.meta_user_id, content.trim())
+        ? sendInstagramMessage(
+            metaAcc.access_token,
+            metaAcc.page_id,
+            lead.meta_user_id,
+            content.trim(),
+            metaAcc.oauth_provider
+          )
         : sendMessengerMessage(metaAcc.access_token, lead.meta_user_id, content.trim());
     const r = await send;
     if (r.message_id && inserted?.id) {

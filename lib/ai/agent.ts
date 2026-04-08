@@ -178,7 +178,7 @@ export async function generateAgentReply(
 
   const { data: metaRow } = await supabase
     .from("meta_accounts")
-    .select("id, platform, access_token")
+    .select("id, platform, access_token, page_id, oauth_provider")
     .eq("organization_id", conv.organization_id)
     .eq("is_active", true)
     .limit(1)
@@ -222,7 +222,13 @@ export async function generateAgentReply(
   if (metaRow?.access_token && lead?.meta_user_id) {
     const send =
       metaRow.platform === "instagram"
-        ? sendInstagramMessage(metaRow.access_token, lead.meta_user_id, reply)
+        ? sendInstagramMessage(
+            metaRow.access_token,
+            metaRow.page_id,
+            lead.meta_user_id,
+            reply,
+            metaRow.oauth_provider
+          )
         : sendMessengerMessage(metaRow.access_token, lead.meta_user_id, reply);
     const sent = await send;
     if (sent.error) {
