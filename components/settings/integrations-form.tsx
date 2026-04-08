@@ -23,6 +23,13 @@ type Account = {
   is_active: boolean | null;
 };
 
+function accountDisplayLine(a: Account): string {
+  const name = a.page_name?.trim();
+  const id = a.page_id?.trim();
+  if (name && id) return `${name} (${id})`;
+  return name || id || "—";
+}
+
 export function IntegrationsForm({
   organizationId,
   accounts: initial,
@@ -98,6 +105,28 @@ export function IntegrationsForm({
           }
         >
           {oauthFlash.message}
+        </div>
+      ) : null}
+
+      {accounts.length > 0 ? (
+        <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+          <h2 className="font-medium">{t("connectedAccountsTitle")}</h2>
+          <ul className="space-y-2 text-sm">
+            {accounts.map((a) => (
+              <li
+                key={a.id}
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-border bg-background/50 px-3 py-2"
+              >
+                <span className="font-medium text-foreground">
+                  {accountDisplayLine(a)}
+                </span>
+                <span className="text-muted-foreground">
+                  {a.platform}
+                  {a.is_active ? "" : ` · ${t("inactiveSuffix")}`}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 
@@ -182,14 +211,6 @@ export function IntegrationsForm({
           Save connection
         </Button>
       </div>
-      <ul className="space-y-2 text-sm">
-        {accounts.map((a) => (
-          <li key={a.id} className="rounded-lg border border-border px-3 py-2">
-            {a.platform} — {a.page_name ?? a.page_id}{" "}
-            {a.is_active ? "(active)" : "(inactive)"}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

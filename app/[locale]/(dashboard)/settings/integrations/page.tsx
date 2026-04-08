@@ -3,12 +3,34 @@ import { getOrganizationForUser } from "@/lib/org";
 import { createClient } from "@/lib/supabase/server";
 import { IntegrationsForm } from "@/components/settings/integrations-form";
 
+type MetaAccountRow = {
+  platform: string | null;
+  page_id: string | null;
+  page_name: string | null;
+};
+
+function formatInstagramAccountLabel(a: MetaAccountRow): string {
+  const name = a.page_name?.trim();
+  const id = a.page_id?.trim();
+  if (name && id) return `${name} (${id})`;
+  return name || id || "—";
+}
+
 function oauthFlashFromParams(
   searchParams: Record<string, string | string[] | undefined>,
-  t: Awaited<ReturnType<typeof getTranslations>>
+  t: Awaited<ReturnType<typeof getTranslations>>,
+  accounts: MetaAccountRow[]
 ): { variant: "success" | "error"; message: string } | null {
   const connected = searchParams.connected;
   if (typeof connected === "string" && connected !== "") {
+    const instagramRows = accounts.filter((a) => a.platform === "instagram");
+    const labels = instagramRows.map(formatInstagramAccountLabel);
+    if (labels.length > 0) {
+      return {
+        variant: "success",
+        message: t("oauthConnectedNames", { names: labels.join(" · ") }),
+      };
+    }
     return {
       variant: "success",
       message: t("oauthConnected", { count: connected }),
@@ -66,9 +88,10 @@ export default async function IntegrationsPage({
     .select("*")
     .eq("organization_id", org.id);
 
+  const accountRows = (accounts ?? []) as MetaAccountRow[];
   const locale = await getLocale();
   const t = await getTranslations("settings.integrations");
-  const flash = oauthFlashFromParams(searchParams, t);
+  const flash = oauthFlashFromParams(searchParams, t, accountRows);
   const tSettings = await getTranslations("settings");
 
   return (
