@@ -97,6 +97,9 @@ export function IntegrationsForm({
 
       <div className="space-y-4 rounded-xl border border-border bg-card p-4">
         <h2 className="font-medium">{t("connectInstagram")}</h2>
+        <p className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
+          {t("oauthAccountPickerHint")}
+        </p>
         <p className="text-sm text-muted-foreground">{t("oauthBlurb")}</p>
         <Button type="button" className="w-full sm:w-auto" onClick={startInstagramOAuth}>
           {t("connectInstagram")}

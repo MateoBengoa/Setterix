@@ -67,6 +67,7 @@
     "billingTitle": "Facturación",
     "integrations": {
       "connectInstagram": "Vincular Instagram Business",
+      "oauthAccountPickerHint": "Importante: en la pantalla de Meta, continúa con tu cuenta de Facebook (la que administra la página), no con la de Instagram. Si eliges solo Instagram en el selector, Meta suele mostrar «Sorry, this content isn’t available». Es normal: los permisos van con Facebook; tu @ de Instagram queda enlazado a través de la página.",
       "oauthBlurb": "Usa Facebook Login for Business (ID de configuración). Si Meta muestra «Sorry, this content isn’t available», pon en Vercel META_OAUTH_INSTAGRAM_VIA_SCOPES=1 o usa el login clásico de Facebook (sin config ID).",
       "connectViaFacebookLink": "Login clásico de Facebook (permisos, sin config ID)",
       "connectViaInstagramLoginPageLink": "Pantalla Instagram primero (estilo ManyChat; puede fallar en localhost)",

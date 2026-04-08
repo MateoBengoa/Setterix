@@ -33,6 +33,9 @@ export default async function ConnectMetaPage() {
         <CreateOrgForm />
       ) : (
         <div className="flex flex-col gap-3">
+          <p className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
+            {tIntegrations("oauthAccountPickerHint")}
+          </p>
           <a href={oauthHref} className={cn(buttonVariants(), "w-full text-center")}>
             {tIntegrations("connectInstagram")}
           </a>
