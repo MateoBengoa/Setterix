@@ -19,6 +19,13 @@ function oauthFlashFromParams(
   if (err === "missing_business_config") {
     return { variant: "error", message: t("errorMissingBusinessConfig") };
   }
+  if (err === "instagram_native_app") {
+    const d = typeof searchParams.detail === "string" ? searchParams.detail : "";
+    return {
+      variant: "error",
+      message: d ? `${t("errorInstagramNativeApp")} ${d}` : t("errorInstagramNativeApp"),
+    };
+  }
   const detail =
     typeof searchParams.detail === "string" ? searchParams.detail : "";
   const hint = typeof searchParams.hint === "string" ? searchParams.hint : "";

@@ -12,7 +12,7 @@ export default async function ConnectMetaPage() {
   const tIntegrations = await getTranslations("settings.integrations");
   const locale = await getLocale();
   const org = await getOrganizationForUser();
-  const oauthHref = `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}&flow=instagram`;
+  const oauthHref = `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}&flow=native_instagram`;
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-8 px-4 py-12">
@@ -26,18 +26,15 @@ export default async function ConnectMetaPage() {
       <div>
         <h1 className="text-2xl font-semibold">{t("meta")}</h1>
         <p className="mt-2 text-muted-foreground">
-          {tIntegrations("oauthBlurb")} {t("connectMetaManualSuffix")}
+          {tIntegrations("oauthNativeBlurb")} {t("connectMetaManualSuffix")}
         </p>
       </div>
       {!org ? (
         <CreateOrgForm />
       ) : (
         <div className="flex flex-col gap-3">
-          <p className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
-            {tIntegrations("oauthAccountPickerHint")}
-          </p>
           <a href={oauthHref} className={cn(buttonVariants(), "w-full text-center")}>
-            {tIntegrations("connectInstagram")}
+            {tIntegrations("connectInstagramNative")}
           </a>
           <p className="text-sm text-muted-foreground">
             {t("connectMetaOrOpen")}{" "}

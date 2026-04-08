@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import {
+  exchangeInstagramCodeForShortLivedToken,
+  exchangeInstagramForLongLivedToken,
+  fetchInstagramMe,
+} from "@/lib/meta/instagram-oauth";
+import {
   exchangeCodeForShortLivedUserToken,
   exchangeForLongLivedUserToken,
   fetchPagesWithInstagram,
@@ -9,6 +14,8 @@ import {
 } from "@/lib/meta/oauth";
 
 export const dynamic = "force-dynamic";
+
+const FLOW_IG_NATIVE = "instagram_native";
 
 function settingsRedirect(
   request: Request,
@@ -33,9 +40,11 @@ export async function GET(request: Request) {
   const cookieStore = await cookies();
   const storedState = cookieStore.get("meta_oauth_state")?.value;
   const locale = cookieStore.get("meta_oauth_locale")?.value ?? "en";
+  const oauthFlow = cookieStore.get("meta_oauth_flow")?.value;
 
   cookieStore.delete("meta_oauth_state");
   cookieStore.delete("meta_oauth_locale");
+  cookieStore.delete("meta_oauth_flow");
 
   if (errParam) {
     return settingsRedirect(request, locale, {
@@ -66,6 +75,74 @@ export async function GET(request: Request) {
   const { data: orgId } = await supabase.rpc("get_my_org_id");
   if (!orgId) {
     return settingsRedirect(request, locale, { error: "no_org" });
+  }
+
+  if (oauthFlow === FLOW_IG_NATIVE) {
+    try {
+      const { accessToken: short } = await exchangeInstagramCodeForShortLivedToken(
+        code,
+        redirectUri
+      );
+      const { accessToken: longToken, expiresIn } =
+        await exchangeInstagramForLongLivedToken(short);
+      const me = await fetchInstagramMe(longToken);
+
+      const display = me.username ? `@${me.username}` : me.name ?? me.id;
+      const tokenExpiresAt =
+        typeof expiresIn === "number"
+          ? new Date(Date.now() + expiresIn * 1000).toISOString()
+          : null;
+
+      const { data: existing } = await supabase
+        .from("meta_accounts")
+        .select("id")
+        .eq("organization_id", orgId)
+        .eq("page_id", me.id)
+        .eq("platform", "instagram")
+        .maybeSingle();
+
+      const row = {
+        organization_id: orgId,
+        platform: "instagram" as const,
+        meta_user_id: me.id,
+        page_id: me.id,
+        page_name: display,
+        access_token: longToken,
+        token_expires_at: tokenExpiresAt,
+        is_active: true,
+        oauth_provider: "instagram" as const,
+      };
+
+      if (existing?.id) {
+        const { error: upErr } = await supabase
+          .from("meta_accounts")
+          .update(row)
+          .eq("id", existing.id);
+        if (upErr) throw new Error(upErr.message);
+      } else {
+        const { error: insErr } = await supabase.from("meta_accounts").insert(row);
+        if (insErr) throw new Error(insErr.message);
+      }
+
+      return settingsRedirect(request, locale, { connected: "1" });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "oauth_failed";
+      const lower = msg.toLowerCase();
+      if (
+        lower.includes("invalid platform") ||
+        lower.includes("invalid client") ||
+        lower.includes("oauthexception")
+      ) {
+        return settingsRedirect(request, locale, {
+          error: "instagram_native_app",
+          detail: msg.slice(0, 160),
+        });
+      }
+      return settingsRedirect(request, locale, {
+        error: "meta_oauth",
+        detail: msg.slice(0, 180),
+      });
+    }
   }
 
   try {

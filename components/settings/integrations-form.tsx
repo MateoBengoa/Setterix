@@ -41,7 +41,13 @@ export function IntegrationsForm({
   const [pageName, setPageName] = useState("");
   const [token, setToken] = useState("");
 
-  function startInstagramOAuth() {
+  function startNativeInstagramOAuth() {
+    window.location.assign(
+      `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}&flow=native_instagram`
+    );
+  }
+
+  function startBusinessOAuth() {
     window.location.assign(
       `/api/integrations/meta/oauth?locale=${encodeURIComponent(locale)}&flow=instagram`
     );
@@ -96,31 +102,44 @@ export function IntegrationsForm({
       ) : null}
 
       <div className="space-y-4 rounded-xl border border-border bg-card p-4">
-        <h2 className="font-medium">{t("connectInstagram")}</h2>
-        <p className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
-          {t("oauthAccountPickerHint")}
-        </p>
-        <p className="text-sm text-muted-foreground">{t("oauthBlurb")}</p>
-        <Button type="button" className="w-full sm:w-auto" onClick={startInstagramOAuth}>
-          {t("connectInstagram")}
+        <h2 className="font-medium">{t("connectInstagramNative")}</h2>
+        <p className="text-sm text-muted-foreground">{t("oauthNativeBlurb")}</p>
+        <Button
+          type="button"
+          className="w-full sm:w-auto"
+          onClick={startNativeInstagramOAuth}
+        >
+          {t("connectInstagramNative")}
         </Button>
-        <p className="text-sm text-muted-foreground">
-          <button
-            type="button"
-            className="text-primary underline-offset-4 hover:underline"
-            onClick={startFacebookOAuth}
-          >
-            {t("connectViaFacebookLink")}
-          </button>
-          {" · "}
-          <button
-            type="button"
-            className="text-primary underline-offset-4 hover:underline"
-            onClick={startInstagramLoginPageOAuth}
-          >
-            {t("connectViaInstagramLoginPageLink")}
-          </button>
-        </p>
+
+        <div className="border-t border-border pt-4">
+          <h3 className="mb-2 text-sm font-medium">{t("connectAlternativesTitle")}</h3>
+          <p className="mb-2 text-sm text-muted-foreground">{t("oauthAccountPickerHint")}</p>
+          <p className="mb-2 text-xs text-muted-foreground">{t("oauthBlurb")}</p>
+          <div className="flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:gap-x-4">
+            <button
+              type="button"
+              className="text-left text-primary underline-offset-4 hover:underline"
+              onClick={startBusinessOAuth}
+            >
+              {t("connectViaBusinessLink")}
+            </button>
+            <button
+              type="button"
+              className="text-left text-primary underline-offset-4 hover:underline"
+              onClick={startFacebookOAuth}
+            >
+              {t("connectViaFacebookLink")}
+            </button>
+            <button
+              type="button"
+              className="text-left text-primary underline-offset-4 hover:underline"
+              onClick={startInstagramLoginPageOAuth}
+            >
+              {t("connectViaInstagramLoginPageLink")}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4 rounded-xl border border-border bg-card p-4">
