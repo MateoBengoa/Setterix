@@ -5,6 +5,7 @@ import { generateAgentReply } from "@/lib/ai/agent";
 import { findMetaAccountByWebhookIds } from "@/lib/meta/find-meta-account-webhook";
 import {
   messageMidFromPayload,
+  messagingEventsFromEntry,
   parseMetaWebhookPayload,
   webhookAccountId,
   type WebhookEntry,
@@ -267,10 +268,16 @@ export async function POST(req: Request) {
   for (const env of envelopes) {
     const objectType = env.object;
     for (const entry of (env.entry ?? []) as WebhookEntry[]) {
-      const events: WebhookMessagingEvent[] = [
-        ...(entry.messaging ?? []),
-        ...(entry.standby ?? []),
-      ];
+      const changeFields = (entry.changes ?? [])
+        .map((c) => c.field)
+        .filter(Boolean);
+      if (changeFields.length > 0) {
+        console.info(
+          "[meta-webhook] entry.changes fields:",
+          changeFields.join(", ")
+        );
+      }
+      const events = messagingEventsFromEntry(entry);
       for (const evt of events) {
         try {
           await processMessagingEvent(supabase, objectType, entry, evt);

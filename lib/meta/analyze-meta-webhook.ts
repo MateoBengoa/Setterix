@@ -1,10 +1,10 @@
 import {
   isSafeMetaNumericId,
   messageMidFromPayload,
+  messagingEventsFromEntry,
   parseMetaWebhookPayload,
   webhookAccountId,
   type WebhookEntry,
-  type WebhookMessagingEvent,
 } from "@/lib/meta/meta-webhook-payload";
 
 export type StoredMetaAccountIds = {
@@ -34,10 +34,7 @@ function collectEvents(raw: unknown): AnalyzedMessagingEvent[] {
     const objectType = env.object;
     for (const entry of (env.entry ?? []) as WebhookEntry[]) {
       const entryId = webhookAccountId(entry.id);
-      const events: WebhookMessagingEvent[] = [
-        ...(entry.messaging ?? []),
-        ...(entry.standby ?? []),
-      ];
+      const events = messagingEventsFromEntry(entry);
       for (const evt of events) {
         const msg = evt.message;
         const mid = msg ? messageMidFromPayload(msg) : undefined;
@@ -110,7 +107,7 @@ export function analyzeMetaWebhookAgainstAccounts(
   }
   if (events.length === 0 && envelopes.length > 0) {
     notes.push(
-      "Envelopes present but no messaging/standby events — Meta may have sent a different field (e.g. changes) or an empty entry."
+      "Envelopes present but no processable message events — check entry.changes (field messages) or entry.messaging; comments/mentions use a different shape."
     );
   }
 

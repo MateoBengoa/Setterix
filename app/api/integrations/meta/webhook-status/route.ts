@@ -98,6 +98,8 @@ export async function GET() {
     copyPastePostTest,
     instagramNativeIdNote:
       "Instagram Login (native): webhooks use the Instagram professional account id. Setterix now stores graph.instagram.com/me user_id when Meta returns it. If you connected before this fix, reconnect once so page_id matches webhook entry.id / recipient.id.",
+    payloadFormatNote:
+      "Instagram Graph API (Instagram Login) usually sends DMs in entry[].changes[] with field \"messages\" (not entry.messaging[]). The simulate button uses messaging[] on purpose; both shapes are now handled by the webhook.",
     whereToSeeVercelLogs:
       "Vercel dashboard → your project → Logs tab (select Production). Or: Deployments → latest → Functions. Search filter: meta-webhook. If still empty, Meta is not POSTing to your URL.",
     metaSubscribeHint:

@@ -75,6 +75,39 @@ describe("analyzeMetaWebhookAgainstAccounts", () => {
     expect(r.unmatchedEvents.length).toBeGreaterThan(0);
   });
 
+  it("matches Instagram Platform payload with entry.changes (not messaging[])", () => {
+    const igChangesPayload = {
+      object: "instagram",
+      entry: [
+        {
+          id: "27389733270613577",
+          time: 1744813777,
+          changes: [
+            {
+              field: "messages",
+              value: {
+                sender: { id: "9876543210987654" },
+                recipient: { id: "27389733270613577" },
+                timestamp: 1527459824,
+                message: { mid: "mid_from_changes", text: "Hola desde IG" },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const r = analyzeMetaWebhookAgainstAccounts(igChangesPayload, [
+      {
+        id: "acc-ig",
+        page_id: "27389733270613577",
+        meta_user_id: "27389733270613577",
+      },
+    ]);
+    expect(r.messagingEventCount).toBe(1);
+    expect(r.accountMatches).toHaveLength(1);
+    expect(r.unmatchedEvents).toHaveLength(0);
+  });
+
   it("marks echo messages with skipReason", () => {
     const echo = {
       object: "instagram",

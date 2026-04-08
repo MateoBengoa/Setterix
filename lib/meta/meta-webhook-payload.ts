@@ -6,21 +6,32 @@ export type WebhookEnvelope = {
   entry?: WebhookEntry[];
 };
 
+export type WebhookChange = {
+  field?: string;
+  value?: unknown;
+};
+
 export type WebhookEntry = {
   id?: string | number;
-  /** Primary DM channel */
+  /** Messenger Platform / some configs — DM events here */
   messaging?: WebhookMessagingEvent[];
   /** Handover / secondary app — same shape as messaging */
   standby?: WebhookMessagingEvent[];
+  /**
+   * Instagram Graph API (Instagram Login + subscribed_apps): Meta sends DM
+   * notifications under changes[].field === "messages", not entry.messaging[].
+   * @see https://developers.facebook.com/docs/instagram-platform/webhooks/examples/
+   */
+  changes?: WebhookChange[];
 };
 
 export type WebhookMessagingEvent = {
   sender?: { id?: string | number };
   recipient?: { id?: string | number };
   message?: {
-    mid?: string;
+    mid?: string | number;
     /** Some payloads use message_id instead of mid */
-    message_id?: string;
+    message_id?: string | number;
     text?: string;
     is_echo?: boolean;
     attachments?: unknown[];
@@ -48,9 +59,32 @@ export function isSafeMetaNumericId(s: string): boolean {
 }
 
 export function messageMidFromPayload(msg: {
-  mid?: string;
-  message_id?: string;
+  mid?: string | number;
+  message_id?: string | number;
 }): string | undefined {
   const m = msg.mid ?? msg.message_id;
-  return typeof m === "string" && m.length > 0 ? m : undefined;
+  if (m === undefined || m === null) return undefined;
+  if (typeof m === "number" && Number.isFinite(m)) return String(m);
+  if (typeof m === "string" && m.length > 0) return m;
+  return undefined;
+}
+
+/**
+ * Collects messaging-shaped events from entry.messaging, entry.standby, and
+ * Instagram Platform entry.changes (messages / message_echoes).
+ */
+export function messagingEventsFromEntry(entry: WebhookEntry): WebhookMessagingEvent[] {
+  const fromArrays: WebhookMessagingEvent[] = [
+    ...(entry.messaging ?? []),
+    ...(entry.standby ?? []),
+  ];
+  const fromChanges: WebhookMessagingEvent[] = [];
+  for (const ch of entry.changes ?? []) {
+    const field = (ch.field ?? "").toLowerCase();
+    if (field !== "messages" && field !== "message_echoes") continue;
+    const v = ch.value;
+    if (!v || typeof v !== "object") continue;
+    fromChanges.push(v as WebhookMessagingEvent);
+  }
+  return [...fromArrays, ...fromChanges];
 }

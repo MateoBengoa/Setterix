@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isSafeMetaNumericId,
   messageMidFromPayload,
+  messagingEventsFromEntry,
   parseMetaWebhookPayload,
   webhookAccountId,
 } from "./meta-webhook-payload";
@@ -48,6 +49,29 @@ describe("isSafeMetaNumericId", () => {
   });
 });
 
+describe("messagingEventsFromEntry", () => {
+  it("merges messaging, standby, and Instagram changes.messages", () => {
+    const entry = {
+      id: "27389733270613577",
+      messaging: [{ sender: { id: "1" }, message: { mid: "a", text: "x" } }],
+      changes: [
+        {
+          field: "messages",
+          value: {
+            sender: { id: "2" },
+            recipient: { id: "27389733270613577" },
+            message: { mid: "b", text: "from changes" },
+          },
+        },
+        { field: "comments", value: { id: "ignore" } },
+      ],
+    };
+    const ev = messagingEventsFromEntry(entry);
+    expect(ev).toHaveLength(2);
+    expect(ev[1].message?.text).toBe("from changes");
+  });
+});
+
 describe("messageMidFromPayload", () => {
   it("prefers mid over message_id", () => {
     expect(
@@ -57,5 +81,9 @@ describe("messageMidFromPayload", () => {
 
   it("falls back to message_id", () => {
     expect(messageMidFromPayload({ message_id: "x" })).toBe("x");
+  });
+
+  it("coerces numeric mid", () => {
+    expect(messageMidFromPayload({ mid: 12345 })).toBe("12345");
   });
 });
