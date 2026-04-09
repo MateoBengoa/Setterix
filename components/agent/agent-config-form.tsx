@@ -94,18 +94,33 @@ type ObjItem  = { objection: string; response: string };
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+type UserProfile = {
+  email: string | null;
+  name: string | null;
+  igName: string | null;
+};
+
 export function AgentConfigForm({
   initial,
   organizationId,
+  userProfile,
 }: {
   initial: Row;
   organizationId: string;
   plan: string;
+  userProfile?: UserProfile;
 }) {
   // 1 — Identidad
   const [identityMode, setIdentityMode] = useState(String(initial?.identity_mode ?? "personal"));
   const [agentName,    setAgentName]    = useState(String(initial?.agent_name ?? ""));
   const [businessName, setBusinessName] = useState(String(initial?.business_name ?? ""));
+
+  // Derived: best available personal name from profile
+  const profileName =
+    userProfile?.igName ??
+    userProfile?.name ??
+    userProfile?.email?.split("@")[0] ??
+    null;
 
   // 2 — Voz
   const [tone,            setTone]            = useState(String(initial?.tone ?? "casual"));
@@ -163,7 +178,7 @@ export function AgentConfigForm({
       {
         organization_id: organizationId,
         identity_mode: identityMode,
-        agent_name: agentName || "Asistente",
+        agent_name: identityMode === "personal" && profileName ? profileName : (agentName || "Asistente"),
         business_name: businessName,
         tone,
         emoji_usage: emojiUsage,
@@ -227,16 +242,31 @@ export function AgentConfigForm({
           </div>
         </div>
 
-        <div>
-          <FieldLabel hint="Cómo se presentará en la primera respuesta">
-            Nombre del agente
-          </FieldLabel>
-          <Input
-            value={agentName}
-            onChange={(e) => setAgentName(e.target.value)}
-            placeholder="Ej: Lucas, Sofía, Asistente de Mateo"
-          />
-        </div>
+        {identityMode === "personal" && profileName ? (
+          <div className="flex items-center gap-3 rounded-xl border border-[#e36887]/30 bg-[#e36887]/5 px-4 py-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e36887]/20 text-sm font-semibold text-[#f3d98f]">
+              {profileName[0]?.toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium">{profileName}</p>
+              <p className="text-[11px] text-white/40">
+                {userProfile?.igName ? "Cuenta de Instagram conectada" : "Tu perfil"}
+                {userProfile?.email ? ` · ${userProfile.email}` : ""}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <FieldLabel hint="Cómo se presentará en la primera respuesta">
+              Nombre del agente
+            </FieldLabel>
+            <Input
+              value={agentName}
+              onChange={(e) => setAgentName(e.target.value)}
+              placeholder="Ej: Lucas, Sofía, Asistente de Mateo"
+            />
+          </div>
+        )}
 
         {identityMode === "brand" && (
           <div>
