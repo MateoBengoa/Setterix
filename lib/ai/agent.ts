@@ -168,7 +168,6 @@ export async function generateAgentReply(
     lead?.meta_account_id
   );
 
-  // Show typing indicator while Gemini thinks.
   if (metaRow?.access_token && lead?.meta_user_id) {
     void sendTypingIndicator(
       metaRow.access_token,

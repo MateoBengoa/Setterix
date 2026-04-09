@@ -9,10 +9,7 @@ export type MetaUserProfile = {
   profile_picture_url?: string;
 };
 
-/**
- * Fetches name, username and profile pic for a sender IGSID or PSID.
- * Returns partial data — callers should handle missing fields gracefully.
- */
+/** Fetches name, username, profile pic for a sender IGSID or PSID. */
 export async function fetchMetaUserProfile(
   accessToken: string,
   userId: string,
@@ -31,37 +28,21 @@ export async function fetchMetaUserProfile(
         username?: string;
         profile_pic?: string;
       };
-      return {
-        name: json.name,
-        username: json.username,
-        profile_picture_url: json.profile_pic,
-      };
+      return { name: json.name, username: json.username, profile_picture_url: json.profile_pic };
     }
-
-    // Facebook Messenger / Facebook OAuth
     const u = new URL(`${FB_GRAPH}/${userId}`);
     u.searchParams.set("fields", "name,profile_pic");
     u.searchParams.set("access_token", accessToken);
     const res = await fetch(u.toString());
     if (!res.ok) return {};
     const json = (await res.json()) as { name?: string; profile_pic?: string };
-    return {
-      name: json.name,
-      profile_picture_url: json.profile_pic,
-    };
+    return { name: json.name, profile_picture_url: json.profile_pic };
   } catch {
     return {};
   }
 }
 
-/**
- * Instagram DMs: Instagram Login uses graph.instagram.com + Bearer token;
- * Facebook Login uses a Page access token on graph.facebook.com/me/messages.
- */
-/**
- * Shows the "typing..." bubble in the user's chat.
- * Fire-and-forget — failures are non-fatal.
- */
+/** Shows the typing bubble in the user's chat. Fire-and-forget. */
 export async function sendTypingIndicator(
   accessToken: string,
   igAccountId: string | null | undefined,
@@ -76,10 +57,7 @@ export async function sendTypingIndicator(
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          recipient: { id: recipientId },
-          sender_action: "typing_on",
-        }),
+        body: JSON.stringify({ recipient: { id: recipientId }, sender_action: "typing_on" }),
       });
     } else {
       await fetch(`${FB_GRAPH}/me/messages`, {
@@ -97,6 +75,10 @@ export async function sendTypingIndicator(
   }
 }
 
+/**
+ * Instagram DMs: Instagram Login uses graph.instagram.com + Bearer token;
+ * Facebook Login uses a Page access token on graph.facebook.com/me/messages.
+ */
 export async function sendInstagramMessage(
   accessToken: string,
   igAccountId: string | null | undefined,

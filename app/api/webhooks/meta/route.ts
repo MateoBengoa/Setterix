@@ -144,28 +144,17 @@ async function processMessagingEvent(
   }
   if (!lead) return;
 
-  // Fetch and store profile (name, username, photo) if not yet populated.
   if (!lead.name && !lead.username) {
-    void fetchMetaUserProfile(
-      metaAcc.access_token,
-      metaUserId,
-      metaAcc.oauth_provider
-    ).then((profile) => {
-      if (!profile.name && !profile.username && !profile.profile_picture_url)
-        return;
-      return supabase
-        .from("leads")
-        .update({
+    void fetchMetaUserProfile(metaAcc.access_token, metaUserId, metaAcc.oauth_provider)
+      .then((profile) => {
+        if (!profile.name && !profile.username && !profile.profile_picture_url) return;
+        return supabase.from("leads").update({
           ...(profile.name && { name: profile.name }),
           ...(profile.username && { username: profile.username }),
-          ...(profile.profile_picture_url && {
-            profile_picture_url: profile.profile_picture_url,
-          }),
-        })
-        .eq("id", lead!.id);
-    }).catch((e) =>
-      console.error("[meta-webhook] fetchMetaUserProfile", String(e))
-    );
+          ...(profile.profile_picture_url && { profile_picture_url: profile.profile_picture_url }),
+        }).eq("id", lead!.id);
+      })
+      .catch((e) => console.error("[meta-webhook] fetchMetaUserProfile", String(e)));
   }
 
   const { data: convRow } = await supabase

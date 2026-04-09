@@ -262,15 +262,18 @@ export function InboxView({
                         <AvatarFallback>{title[0]?.toUpperCase() ?? "?"}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                      <span className="block font-medium truncate">{title}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {c.last_message_at
-                          ? new Date(c.last_message_at).toLocaleString()
-                          : "—"}
-                      </span>
-                      <Badge variant="secondary" className="mt-1 w-fit text-[10px]">
-                        {c.leads?.status ?? "—"}
-                      </Badge>
+                        <span className="block truncate font-medium">{title}</span>
+                        <span
+                          className="text-xs text-muted-foreground"
+                          suppressHydrationWarning
+                        >
+                          {c.last_message_at
+                            ? new Date(c.last_message_at).toLocaleString()
+                            : "—"}
+                        </span>
+                        <Badge variant="secondary" className="mt-1 w-fit text-[10px]">
+                          {c.leads?.status ?? "—"}
+                        </Badge>
                       </div>
                     </button>
                   </li>
