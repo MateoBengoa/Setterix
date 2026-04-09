@@ -213,14 +213,18 @@ async function processMessagingEvent(
     }
   }
 
+  console.info("[meta-webhook] is_ai_active:", conv.is_ai_active, "conv:", conv.id);
   if (conv.is_ai_active !== false) {
     const key = process.env.GEMINI_API_KEY;
+    console.info("[meta-webhook] GEMINI_API_KEY present:", Boolean(key));
     if (key) {
       void generateAgentReply(conv.id, {
         supabase,
         geminiApiKey: key,
-      }).catch((e) =>
-        console.error("[meta-webhook] generateAgentReply", String(e))
+      }).then((r) =>
+        console.info("[meta-webhook] generateAgentReply result:", JSON.stringify(r))
+      ).catch((e) =>
+        console.error("[meta-webhook] generateAgentReply error:", String(e))
       );
     }
   }
