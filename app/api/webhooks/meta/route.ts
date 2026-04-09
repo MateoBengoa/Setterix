@@ -58,6 +58,40 @@ export async function GET(req: Request) {
   return NextResponse.json({ error: "forbidden" }, { status: 403 });
 }
 
+const REPLY_DELAY_MS = 4_000;
+
+/**
+ * Waits REPLY_DELAY_MS, then replies only if no newer inbound message arrived.
+ * This lets the user finish typing a burst of messages before the AI responds.
+ */
+async function scheduleAgentReply(
+  supabase: ReturnType<typeof createAdminClient>,
+  convId: string,
+  messageInsertedAt: string,
+  geminiApiKey: string
+): Promise<void> {
+  await new Promise((r) => setTimeout(r, REPLY_DELAY_MS));
+
+  const { data: fresh } = await supabase
+    .from("conversations")
+    .select("last_message_at, is_ai_active")
+    .eq("id", convId)
+    .single();
+
+  if (!fresh || fresh.is_ai_active === false) return;
+
+  // If a newer message arrived while we were waiting, that invocation will reply.
+  const lastMs = fresh.last_message_at ? new Date(fresh.last_message_at).getTime() : 0;
+  const myMs = new Date(messageInsertedAt).getTime();
+  if (lastMs > myMs + 500) {
+    console.info("[meta-webhook] skipping reply — newer message arrived");
+    return;
+  }
+
+  const result = await generateAgentReply(convId, { supabase, geminiApiKey });
+  console.info("[meta-webhook] generateAgentReply result:", JSON.stringify(result));
+}
+
 async function processMessagingEvent(
   supabase: ReturnType<typeof createAdminClient>,
   objectType: string | undefined,
@@ -218,13 +252,9 @@ async function processMessagingEvent(
     const key = process.env.GEMINI_API_KEY;
     console.info("[meta-webhook] GEMINI_API_KEY present:", Boolean(key));
     if (key) {
-      void generateAgentReply(conv.id, {
-        supabase,
-        geminiApiKey: key,
-      }).then((r) =>
-        console.info("[meta-webhook] generateAgentReply result:", JSON.stringify(r))
-      ).catch((e) =>
-        console.error("[meta-webhook] generateAgentReply error:", String(e))
+      const insertedAt = new Date().toISOString();
+      void scheduleAgentReply(supabase, conv.id, insertedAt, key).catch((e) =>
+        console.error("[meta-webhook] scheduleAgentReply error:", String(e))
       );
     }
   }
