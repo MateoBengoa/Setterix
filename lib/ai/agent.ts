@@ -25,7 +25,24 @@ function buildSystemPrompt(config: {
   lead_status: string;
   booking_enabled: boolean;
   calendar_provider: string | null;
+  calendly_url?: string | null;
   system_prompt_override: string | null;
+  // extended fields
+  identity_mode?: string | null;
+  emoji_usage?: string | null;
+  message_length?: string | null;
+  use_exclamations?: boolean | null;
+  catchphrases?: string | null;
+  writing_examples?: string | null;
+  welcome_message?: string | null;
+  operating_hours?: string | null;
+  main_goal?: string | null;
+  cta_message?: string | null;
+  forbidden_topics?: string | null;
+  price_handling?: string | null;
+  forbidden_phrases?: string | null;
+  objections?: { objection: string; response: string }[];
+  handoff_instructions?: string | null;
 }): string {
   const faqBlock = config.faqs
     .map((f) => `Q: ${f.question}\nA: ${f.answer}`)
@@ -33,39 +50,88 @@ function buildSystemPrompt(config: {
   const qualBlock = config.qualification_questions
     .map((q, i) => `${i + 1}. (${q.field_key}) ${q.question}${q.required ? " (required)" : ""}`)
     .join("\n");
-  const booking =
-    config.booking_enabled && config.calendar_provider
-      ? `If the user wants to book, acknowledge and say you will send a booking link shortly. Set action booking in the JSON footer.`
-      : `Do not promise booking unless configured.`;
+  const objBlock = (config.objections ?? [])
+    .map((o) => `Objeción: "${o.objection}" → Respuesta: ${o.response}`)
+    .join("\n");
 
-  const base = config.system_prompt_override?.trim()
-    ? config.system_prompt_override.trim()
-    : `You are ${config.agent_name}, a ${config.tone} assistant for ${config.business_name}.
+  const emojiMap: Record<string, string> = {
+    nunca: "No uses emojis bajo ninguna circunstancia.",
+    poco:  "Usa emojis con moderación, solo cuando refuercen el mensaje.",
+    normal:"Usa emojis de forma natural como lo haría un humano.",
+    mucho: "Usá emojis frecuentemente para sonar cercano y expresivo.",
+  };
+  const lengthMap: Record<string, string> = {
+    cortos: "Mensajes MUY cortos (1–2 líneas máximo).",
+    medios: "Mensajes de longitud media (2–4 líneas).",
+    largos: "Podés extenderte con explicaciones cuando sea útil.",
+  };
+  const toneMap: Record<string, string> = {
+    formal:    "Tono formal y profesional.",
+    casual:    "Tono casual y amigable.",
+    callejero: "Tono callejero, muy informal, como un amigo cercano.",
+    tecnico:   "Tono técnico y preciso.",
+  };
+  const goalMap: Record<string, string> = {
+    agendar_llamada:  "Tu objetivo principal es conseguir que el lead agende una llamada.",
+    link_de_pago:     "Tu objetivo principal es enviar el link de pago cuando el lead esté listo.",
+    recolectar_email: "Tu objetivo principal es conseguir el email del lead.",
+    calificar:        "Tu objetivo principal es calificar al lead con las preguntas de calificación.",
+    otro:             config.cta_message ?? "Cerrar la conversación con el CTA configurado.",
+  };
+
+  const booking =
+    config.booking_enabled && (config.calendly_url || config.calendar_provider)
+      ? `Cuando el lead quiera agendar, enviá este link: ${config.calendly_url ?? "(link pendiente de configurar)"}. Activá booking en el JSON footer.`
+      : `No ofrezcas ni prometás agendar citas a menos que el lead lo pida y esté configurado.`;
+
+  const identity =
+    config.identity_mode === "brand"
+      ? `Sos ${config.agent_name}, asistente de ${config.business_name}.`
+      : `Sos ${config.agent_name}.`;
+
+  return `${identity}
 ${config.business_description ?? ""}
 
-Language: reply in ${config.language} when appropriate.
+IDIOMA: Respondé siempre en ${config.language === "es" ? "español" : config.language === "pt" ? "portugués" : "inglés"}.
+
+VOZ Y ESTILO:
+- ${toneMap[config.tone] ?? config.tone}
+- ${emojiMap[config.emoji_usage ?? "poco"]}
+- ${lengthMap[config.message_length ?? "medios"]}
+- Signos de exclamación: ${config.use_exclamations ? "sí, usá exclamaciones cuando corresponda" : "no uses signos de exclamación"}.
+${config.catchphrases ? `- Muletillas y frases características tuyas: ${config.catchphrases}` : ""}
+${config.writing_examples ? `\nEJEMPLOS DE TU ESTILO DE ESCRITURA (aprendé de estos):\n${config.writing_examples}` : ""}
+
+NEGOCIO:
+${config.business_description ?? "(sin descripción)"}
 
 FAQs:
-${faqBlock || "(none)"}
+${faqBlock || "(ninguna)"}
 
-Qualification questions to collect in order (merge answers into context):
-${qualBlock || "(none)"}
+Objeciones y cómo manejarlas:
+${objBlock || "(ninguna)"}
 
-Current lead status: ${config.lead_status}
-Known qualification data (JSON): ${JSON.stringify(config.qualification_data)}
+PREGUNTAS DE CALIFICACIÓN (recopilalas en orden):
+${qualBlock || "(ninguna)"}
+Estado actual del lead: ${config.lead_status}
+Datos ya recopilados: ${JSON.stringify(config.qualification_data)}
 
-Rules:
-- Never invent prices, discounts, or guarantees not explicitly provided in FAQs or business description.
-- If asked something outside your knowledge or scope, say you will connect them with the team and set action handoff in the JSON footer.
-- Be concise and helpful.
+OBJETIVO: ${goalMap[config.main_goal ?? "calificar"]}
+${config.cta_message ? `Mensaje de cierre: ${config.cta_message}` : ""}
+
 ${booking}
 
-Split your reply into 2–4 short natural messages the way a human would in a chat — each one on its own, separated by the token ||| on a line by itself. Do NOT put ||| inside a single sentence.
+LÍMITES:
+${config.forbidden_topics ? `- Temas prohibidos: ${config.forbidden_topics}` : ""}
+${config.forbidden_phrases ? `- Frases/palabras prohibidas: ${config.forbidden_phrases}` : ""}
+- Precio: ${config.price_handling === "escalar" ? "Si preguntan precio, decí que lo consulta con el equipo y activá handoff." : config.price_handling === "rango" ? "Si preguntan precio, da solo un rango aproximado sin comprometerte." : "Respondé preguntas de precio con la información de las FAQs."}
+${config.handoff_instructions ? `- Escalar a humano cuando: ${config.handoff_instructions}` : "- Si no sabés algo o el lead se frustra, activá handoff en el JSON footer."}
+- Horario: ${config.operating_hours ?? "24/7"}
 
-After all messages, output a single line exactly in this format (machine-readable, stripped server-side):
+FORMATO DE RESPUESTA:
+Separar cada mensaje con ||| en su propia línea (2–4 mensajes cortos como humano en chat).
+Al final, una línea exacta:
 ACTIONS_JSON: {"qualified":boolean,"booking":boolean,"handoff":boolean}`;
-
-  return base;
 }
 
 function parseActions(text: string): {
@@ -161,7 +227,22 @@ export async function generateAgentReply(
     lead_status: lead?.status ?? "new",
     booking_enabled: config.booking_enabled ?? false,
     calendar_provider: config.calendar_provider,
+    calendly_url: config.calendly_url as string | null | undefined,
     system_prompt_override: config.system_prompt_override,
+    identity_mode: config.identity_mode as string | null | undefined,
+    emoji_usage: config.emoji_usage as string | null | undefined,
+    message_length: config.message_length as string | null | undefined,
+    use_exclamations: config.use_exclamations as boolean | null | undefined,
+    catchphrases: config.catchphrases as string | null | undefined,
+    writing_examples: config.writing_examples as string | null | undefined,
+    operating_hours: config.operating_hours as string | null | undefined,
+    main_goal: config.main_goal as string | null | undefined,
+    cta_message: config.cta_message as string | null | undefined,
+    forbidden_topics: config.forbidden_topics as string | null | undefined,
+    price_handling: config.price_handling as string | null | undefined,
+    forbidden_phrases: config.forbidden_phrases as string | null | undefined,
+    objections: config.objections as { objection: string; response: string }[] | undefined,
+    handoff_instructions: config.system_prompt_override as string | null | undefined,
   });
 
   const metaRow = await resolveMetaAccountForLead(
