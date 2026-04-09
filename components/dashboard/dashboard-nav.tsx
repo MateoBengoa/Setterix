@@ -41,7 +41,8 @@ const settingsItems = [
 ];
 
 export function DashboardNav() {
-  const t   = useTranslations("nav");
+  const t      = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const tAuth = useTranslations("auth");
   const pathname = usePathname();
   const router = useRouter();
@@ -58,8 +59,17 @@ export function DashboardNav() {
   );
 
   return (
-    <nav className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
+    <nav className="fixed top-4 left-1/2 z-50 -translate-x-1/2">
       <div className="flex items-center gap-0.5 rounded-2xl border border-white/10 bg-[#0d0d0d]/90 px-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        <Link
+          href="/dashboard"
+          className="px-3 py-1.5 text-[13px] font-semibold tracking-tight"
+        >
+          <span className="bg-gradient-to-r from-[#f3d98f] to-[#e36887] bg-clip-text text-transparent">
+            {tCommon("appName")}
+          </span>
+        </Link>
+        <div className="mx-1 h-5 w-px bg-white/10" />
         {mainItems.map(({ href, key, Icon }) => {
           const active = pathname === href || pathname?.startsWith(href + "/");
           return (
@@ -100,7 +110,7 @@ export function DashboardNav() {
             {t("settings")}
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            side="top"
+            side="bottom"
             align="end"
             className="mb-2 w-48 border-white/10 bg-[#141414] text-foreground"
           >
