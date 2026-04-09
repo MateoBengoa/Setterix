@@ -58,7 +58,7 @@ export async function GET(req: Request) {
   return NextResponse.json({ error: "forbidden" }, { status: 403 });
 }
 
-const REPLY_DELAY_MS = 4_000;
+const REPLY_DELAY_MS = 8_000;
 
 /**
  * Waits REPLY_DELAY_MS, then replies only if no newer inbound message arrived.
