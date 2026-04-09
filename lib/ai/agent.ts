@@ -60,7 +60,9 @@ Rules:
 - Be concise and helpful.
 ${booking}
 
-After your user-facing message, output a single line exactly in this format (machine-readable, do not show to user as separate message — it is stripped server-side):
+Split your reply into 2–4 short natural messages the way a human would in a chat — each one on its own, separated by the token ||| on a line by itself. Do NOT put ||| inside a single sentence.
+
+After all messages, output a single line exactly in this format (machine-readable, stripped server-side):
 ACTIONS_JSON: {"qualified":boolean,"booking":boolean,"handoff":boolean}`;
 
   return base;
@@ -192,16 +194,12 @@ export async function generateAgentReply(
   const { reply, qualified, booking, handoff } = parseActions(raw);
   if (!reply) return { ok: false, error: "empty_reply" };
 
-  const { data: inserted } = await supabase
-    .from("messages")
-    .insert({
-      conversation_id: conversationId,
-      direction: "outbound",
-      sender: "ai",
-      content: reply,
-    })
-    .select("id")
-    .single();
+  // Split on ||| to get individual chat bubbles.
+  const parts = reply
+    .split(/\|\|\|/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const chunks = parts.length > 0 ? parts : [reply];
 
   await supabase
     .from("conversations")
@@ -227,31 +225,57 @@ export async function generateAgentReply(
     }
   }
 
-  if (metaRow?.access_token && lead?.meta_user_id) {
-    const send =
-      metaRow.platform === "instagram"
-        ? sendInstagramMessage(
-            metaRow.access_token,
-            metaRow.page_id,
-            lead.meta_user_id,
-            reply,
-            metaRow.oauth_provider
-          )
-        : sendMessengerMessage(metaRow.access_token, lead.meta_user_id, reply);
-    const sent = await send;
-    if (sent.error) {
-      return { ok: false, error: sent.error };
-    }
-    if (inserted && sent.message_id) {
-      await supabase
-        .from("messages")
-        .update({ meta_message_id: sent.message_id })
-        .eq("id", inserted.id);
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+
+    const { data: inserted } = await supabase
+      .from("messages")
+      .insert({
+        conversation_id: conversationId,
+        direction: "outbound",
+        sender: "ai",
+        content: chunk,
+      })
+      .select("id")
+      .single();
+
+    if (metaRow?.access_token && lead?.meta_user_id) {
+      // Show typing before each chunk (except the first — already shown before Gemini).
+      if (i > 0) {
+        await sendTypingIndicator(
+          metaRow.access_token,
+          metaRow.page_id,
+          lead.meta_user_id,
+          metaRow.oauth_provider
+        );
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+
+      const send =
+        metaRow.platform === "instagram"
+          ? sendInstagramMessage(
+              metaRow.access_token,
+              metaRow.page_id,
+              lead.meta_user_id,
+              chunk,
+              metaRow.oauth_provider
+            )
+          : sendMessengerMessage(metaRow.access_token, lead.meta_user_id, chunk);
+      const sent = await send;
+      if (sent.error) {
+        return { ok: false, error: sent.error };
+      }
+      if (inserted && sent.message_id) {
+        await supabase
+          .from("messages")
+          .update({ meta_message_id: sent.message_id })
+          .eq("id", inserted.id);
+      }
     }
   }
 
   await incrementAnalytics(supabase, conv.organization_id, {
-    messages_sent: 1,
+    messages_sent: chunks.length,
   });
 
   if (booking && config.booking_enabled) {
